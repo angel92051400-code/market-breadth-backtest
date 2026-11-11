@@ -105,6 +105,7 @@ def evaluate_monthly_dca(prices: pd.DataFrame, cfg, monthly_amount=DCA_AMOUNT):
         daily.append({
             "date":day, "equity":equity, "cash":cash, "shares":shares,
             "market_value":mkt, "position":int(shares > 0),
+            "invested_roi_pct":(mkt/cost-1)*100 if cost>0 and pd.notna(mkt) else np.nan,
             "etf_close":close, "external_contributions":external_contributions,
             "external_equity":external_shares * close if pd.notna(close) else np.nan,
         })
