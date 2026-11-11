@@ -4,6 +4,7 @@ Current top-640 historical breadth is NOT a point-in-time constituent universe.
 """
 from __future__ import annotations
 import json
+import hashlib
 import re
 from pathlib import Path
 import numpy as np
@@ -43,8 +44,10 @@ def download_dashboard(cache_dir:Path, *, url=SOURCE_URL, refresh=False):
         if 'market-data' not in response.text:
             raise ValueError('Dashboard data not found')
         path.write_text(response.text,encoding='utf-8')
-    data,meta = read_dashboard(path.read_text(encoding='utf-8'))
+    html = path.read_text(encoding='utf-8')
+    data,meta = read_dashboard(html)
     meta['source']=url
+    meta['source_sha256']=hashlib.sha256(html.encode('utf-8')).hexdigest()
     return data,meta
 
 def _columns_for_symbol(df,ticker):
