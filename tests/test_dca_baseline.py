@@ -87,3 +87,4 @@ def test_dca_roi_does_not_include_idle_cash():
     assert r["trading_profit"]==pytest.approx(
         r["ending_market_value"]-r["total_invested"])
     assert r["invested_return_pct"]!=pytest.approx(r["strategy_return_pct"])
+    assert curve.invested_roi_pct.iloc[-1]==pytest.approx(r["invested_return_pct"])
