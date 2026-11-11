@@ -14,10 +14,10 @@ def make_frame():
 
 def test_next_day_execution_and_win_rate():
     df=make_frame()
-    signals=build_signals(df,Config(lookback=2))
+    signals=build_signals(df,Config(lookback=2,sell=70,very_hot=80))
     prices=pd.DataFrame({'Open':[100,100,100,100,105,107,110,120,123,100,100,100],
         'Close':[100,100,100,102,105,107,110,120,123,100,100,100]},index=df.index)
-    trades,curve,stats=evaluate(signals,prices,Config(lookback=2),'A')
+    trades,curve,stats=evaluate(signals,prices,Config(lookback=2,sell=70,very_hot=80),'A')
     assert len(trades)==1
     assert trades.iloc[0].entry_date == df.index[4].date().isoformat()
     assert trades.iloc[0].exit_date == df.index[8].date().isoformat()
