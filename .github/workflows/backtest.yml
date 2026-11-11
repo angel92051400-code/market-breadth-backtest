@@ -10,7 +10,7 @@ on:
         type: string
       sell:
         description: '市場寬度賣出門檻'
-        default: '70'
+        default: '50'
         required: true
         type: string
   # One-time deployment run for the new six-strategy report.
