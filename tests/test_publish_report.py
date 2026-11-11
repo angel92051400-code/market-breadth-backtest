@@ -65,8 +65,8 @@ def test_published_site_has_new_five_strategies_and_dca(tmp_path):
     assert page.count('class="bar-row"')==14
     assert "本金報酬率長條圖" in page
     assert page.index("<th>0050 報酬率</th>")<page.index("<th>正二報酬率</th>")
-    assert 'class="ret50">12.35%</td>' in page
-    assert 'class="ret2">20.00%</td>' in page
+    assert "class='ret50'>12.35%</td>" in page
+    assert "class='ret2'>20.00%</td>" in page
     assert "兩種資金條件" not in page
     assert "期末現金（備註）" not in page
     assert "0050 一次買入持有報酬*" not in page
