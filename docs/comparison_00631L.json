@@ -342,6 +342,29 @@
         "remaining_shares": 5108.233443913692,
         "remaining_cost": 75000.0
       }
+    },
+    {
+      "strategy": "BH",
+      "buy_orders": 1,
+      "sell_orders": 0,
+      "completed_trades": 0,
+      "wins": 0,
+      "win_rate_pct": null,
+      "external_capital": 10000,
+      "total_invested": 10000,
+      "trading_profit": 16168.658784085786,
+      "invested_return_pct": 161.68658784085784,
+      "strategy_return_pct": 161.68658784085784,
+      "ending_market_value": 26168.658784085786,
+      "total_sale_proceeds": 0.0,
+      "max_drawdown_pct": -50.226325378511746,
+      "exposure_pct": 100.0,
+      "first_date": "2024-11-11",
+      "last_date": "2026-11-10",
+      "open_trade": {
+        "remaining_shares": 865.0796292259764,
+        "remaining_cost": 10000
+      }
     }
   ]
 }
