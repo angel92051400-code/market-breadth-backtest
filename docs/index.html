@@ -38,20 +38,37 @@ a{color:#8ac4ff}
 目前資料使用當前前 640 大股票回推，存在存活者偏差。</p>
 </section>
 <section class="panel">
-<h2>六組策略規則（原版 A/B/C＋新增 A2/B2/C2）</h2>
-<p><strong>A｜純市場寬度</strong>：過冷後回升買進、上穿50%或60%分批賣出。</p><p><strong>B｜純費波那契</strong>：價格向上收復過去 120 日費波那契支撐，隔日買進；依訊號當日固定的下一級壓力目標或支撐失效價位出場，不使用市場寬度。</p><p><strong>C｜綜合策略</strong>：過冷回升後五日內且接近費波那契價位買進；市場寬度上穿50%或60%分批賣出。</p><p><strong>A2｜寬度波段</strong>：上穿40%進場；失守40%、上穿50/60%或30交易日減碼。</p><p><strong>B2｜費波那契反彈</strong>：靠近支撐且止跌反彈買進；回落6%、支撐失效或45交易日減碼。</p><p><strong>C2｜綜合波段</strong>：寬度上穿40%且高於費波那契50%價位買進；上穿50/60%減碼；寬度失守、指數跌破Fib50%或45交易日再減碼。</p>
+<h2>七組策略＋0050 定期定額基準</h2>
+<p><strong>A｜純市場寬度</strong>：過冷後回升買進、上穿50%或60%分批賣出。</p><p><strong>B｜純費波那契</strong>：價格向上收復過去 120 日費波那契支撐，隔日買進；依訊號當日固定的下一級壓力目標或支撐失效價位出場，不使用市場寬度。</p><p><strong>C｜綜合策略</strong>：過冷回升後五日內且接近費波那契價位買進；市場寬度上穿50%或60%分批賣出。</p><p><strong>A2｜寬度波段</strong>：上穿40%進場；失守40%、上穿50/60%或30交易日減碼。</p><p><strong>B2｜費波那契反彈</strong>：靠近支撐且止跌反彈買進；回落6%、支撐失效或45交易日減碼。</p><p><strong>C2｜綜合波段</strong>：寬度上穿40%且高於費波那契50%價位買進；上穿50/60%減碼；寬度失守、指數跌破Fib50%或45交易日再減碼。</p><p><strong>B3｜寬鬆費波那契</strong>：價格上漲且距23.6/38.2/50/61.8/78.6%回撤位不超過6%買進；參考1.414倍延伸目標、支撐跌破6%或60日減碼50%。仍屬探索性策略。</p><p><strong>0050 月初定期定額</strong>：每個月 1 日（休市順延下一個交易日）買進3,000元。公平比較版本使用與六組策略相同的初始10萬元，從現金扣除；一般定期定額則每月另存3,000元，獨立顯示累計投入與XIRR。</p>
 </section>
 <section class="panel">
 <h2>策略績效比較</h2>
 <div class="table-wrap"><table>
-<thead><tr><th>策略</th><th>買進次數</th><th>賣出次數</th><th>賣出獲利率</th><th>策略總報酬</th><th>最大回撤</th><th>持倉比例</th><th>0050 持有報酬*</th></tr></thead>
-<tbody><tr><td>策略 A</td><td>7</td><td>26</td><td>100.0%</td><td>8.39%</td><td>-1.98%</td><td>76.3%</td><td>108.65%</td></tr>
-<tr><td>策略 B</td><td>1</td><td>3</td><td>100.0%</td><td>2.92%</td><td>-0.65%</td><td>72.2%</td><td>108.65%</td></tr>
-<tr><td>策略 C</td><td>1</td><td>26</td><td>100.0%</td><td>0.84%</td><td>-0.42%</td><td>75.1%</td><td>108.65%</td></tr>
-<tr><td>策略 A2</td><td>35</td><td>65</td><td>75.4%</td><td>7.15%</td><td>-1.42%</td><td>74.6%</td><td>108.65%</td></tr>
-<tr><td>策略 B2</td><td>7</td><td>16</td><td>93.8%</td><td>12.32%</td><td>-2.28%</td><td>74.6%</td><td>108.65%</td></tr>
-<tr><td>策略 C2</td><td>36</td><td>65</td><td>75.4%</td><td>7.40%</td><td>-1.18%</td><td>74.6%</td><td>108.65%</td></tr></tbody></table></div>
-<p class="muted">* 相同期間的 0050 持有基準。持倉比例指有部位的交易日占比；獲利率按每次賣出50%所實現的盈虧計算，不是完整往返交易勝率；剩餘持股市值計入總報酬。起始資金100,000元，每次買入10,000元，每次賣出50%現有持股；六組策略屬探索性研究假設，並非最適化結果。資料從目前來源最早日期開始；費波那契須先累積120個已完成交易日才有訊號。</p>
+<thead><tr><th>策略</th><th>買進次數</th><th>賣出次數</th><th>賣出獲利率</th><th>累計買進本金</th><th>淨投資損益</th><th>投入報酬率</th><th>最大回撤</th><th>持倉比例</th><th>0050 一次買入持有報酬*</th></tr></thead>
+<tbody><tr><td>策略 A</td><td>7</td><td>26</td><td>100.0%</td><td>NT$ 70,000</td><td>NT$ 8,394</td><td>11.99%</td><td>-1.98%</td><td>76.3%</td><td>108.65%</td></tr>
+<tr><td>策略 B</td><td>1</td><td>3</td><td>100.0%</td><td>NT$ 10,000</td><td>NT$ 2,921</td><td>29.21%</td><td>-0.65%</td><td>72.2%</td><td>108.65%</td></tr>
+<tr><td>策略 C</td><td>1</td><td>26</td><td>100.0%</td><td>NT$ 10,000</td><td>NT$ 841</td><td>8.41%</td><td>-0.42%</td><td>75.1%</td><td>108.65%</td></tr>
+<tr><td>策略 A2</td><td>35</td><td>65</td><td>75.4%</td><td>NT$ 350,000</td><td>NT$ 7,154</td><td>2.04%</td><td>-1.42%</td><td>74.6%</td><td>108.65%</td></tr>
+<tr><td>策略 B2</td><td>7</td><td>16</td><td>93.8%</td><td>NT$ 70,000</td><td>NT$ 12,319</td><td>17.60%</td><td>-2.28%</td><td>74.6%</td><td>108.65%</td></tr>
+<tr><td>策略 C2</td><td>36</td><td>65</td><td>75.4%</td><td>NT$ 360,000</td><td>NT$ 7,398</td><td>2.05%</td><td>-1.18%</td><td>74.6%</td><td>108.65%</td></tr>
+<tr><td>策略 B3</td><td>47</td><td>8</td><td>87.5%</td><td>NT$ 470,000</td><td>NT$ 64,883</td><td>13.80%</td><td>-20.99%</td><td>75.1%</td><td>108.65%</td></tr>
+<tr><td>0050 月初定期定額</td><td>25</td><td>0</td><td>—</td><td>NT$ 75,000</td><td>NT$ 48,044</td><td>64.06%</td><td>-17.37%</td><td>100.0%</td><td>108.65%</td></tr></tbody></table></div>
+<p class="muted">* 七組策略與定期定額使用相同期間的 0050 一次買入持有基準，因此這一欄每列相同是正常的。投入報酬率＝（累計賣出淨所得＋期末持股市值－累計買進成本）／累計買進成本，完全不計閒置現金。若賣出所得再次買進，累計買進成本會重複計入投入本金，因此這是投入週轉報酬，不是資金加權年化報酬 XIRR。持倉比例指有部位的交易日占比；獲利率按每次賣出50%所實現的盈虧計算，不是完整往返交易勝率；剩餘持股市值計入總報酬。起始可用資金100,000元（僅作現金限制，不直接計入投入報酬），七組訊號策略每次買入10,000元、每次賣出50%現有持股；定期定額每月買入3,000元。新增 B3 與其他策略屬探索性研究假設，並非最適化結果。資料從目前來源最早日期開始；費波那契須先累積120個已完成交易日才有訊號。</p>
+</section>
+<section class="panel">
+<h2>0050 每月 1 日定期定額：兩種資金條件</h2>
+<div class="table-wrap"><table><thead><tr><th>定期定額版本</th><th>累計投入</th><th>期末持股市值</th><th>期末現金（備註）</th><th>期末總資產（備註）</th><th>淨投資損益</th><th>投入報酬率</th></tr></thead><tbody><tr><td>同資金：起始10萬元，每月扣3,000</td><td>NT$ 75,000</td><td>NT$ 123,044</td><td>NT$ 25,000</td><td>NT$ 148,044</td><td>NT$ 48,044</td><td>64.06%</td></tr><tr><td>每月外部新存3,000</td><td>NT$ 75,000</td><td>NT$ 123,044</td><td>NT$ 0</td><td>NT$ 123,044</td><td>NT$ 48,044</td><td>64.06%</td></tr></tbody></table></div><p>外部逐月投入的年化資金加權報酬（XIRR）：<strong>56.70%</strong>。外部定期定額投入與反覆買賣訊號策略的投入時點不同；建議另外比較XIRR。兩種版本都包含買進手續費；股息透過調整後價格近似再投入，允許小數股。</p>
+</section>
+<section class="panel">
+<h2>0050 與 00631L 正二同期間實際價格比較</h2>
+<p>兩檔標的使用相同市場寬度／加權指數訊號、共同交易日期、起始可用資金10萬元、訊號策略每次買進1萬元並賣出持股50%。閒置現金不計入投入報酬率。00631L是真實調整後ETF價格，不是把0050乘以二。</p><div class="table-wrap"><table><thead><tr><th>策略</th><th>0050投入報酬</th><th>00631L投入報酬</th><th>0050最大回撤</th><th>00631L最大回撤</th><th>買入筆數 0050 / 00631L</th></tr></thead><tbody><tr><td>A</td><td>11.99%</td><td>21.28%</td><td>-1.98%</td><td>-3.57%</td><td>7 / 7</td></tr>
+<tr><td>B</td><td>29.21%</td><td>54.42%</td><td>-0.65%</td><td>-2.03%</td><td>1 / 1</td></tr>
+<tr><td>C</td><td>8.41%</td><td>13.80%</td><td>-0.42%</td><td>-0.83%</td><td>1 / 1</td></tr>
+<tr><td>A2</td><td>2.04%</td><td>3.60%</td><td>-1.42%</td><td>-2.54%</td><td>35 / 35</td></tr>
+<tr><td>B2</td><td>17.60%</td><td>32.36%</td><td>-2.28%</td><td>-4.50%</td><td>7 / 7</td></tr>
+<tr><td>C2</td><td>2.05%</td><td>3.67%</td><td>-1.18%</td><td>-2.12%</td><td>36 / 36</td></tr>
+<tr><td>B3</td><td>13.80%</td><td>17.54%</td><td>-20.99%</td><td>-38.99%</td><td>47 / 55</td></tr>
+<tr><td>DCA</td><td>64.06%</td><td>106.03%</td><td>-17.37%</td><td>-33.11%</td><td>25 / 25</td></tr></tbody></table></div><p>共同交易區間：2024-11-11～2026-11-10（485天）。00631L以臺灣50單日兩倍漲跌為目標；長期報酬並不等於0050報酬的兩倍，且可能有顯著放大回撤與波動耗損。須符合槓桿ETF適格條件。</p>
 </section>
 <section class="panel">
 <h2>互動圖表</h2>
@@ -60,6 +77,6 @@ a{color:#8ac4ff}
 </section>
 <section class="panel">
 <h2>下載資料與診斷</h2>
-<div class="files"><a href="summary.json" download>summary.json</a><a href="summary.csv" download>summary.csv</a><a href="signal_diagnostics.csv" download>signal_diagnostics.csv</a><a href="trades_A.csv" download>trades_A.csv</a><a href="equity_A.csv" download>equity_A.csv</a><a href="trades_B.csv" download>trades_B.csv</a><a href="equity_B.csv" download>equity_B.csv</a><a href="trades_C.csv" download>trades_C.csv</a><a href="equity_C.csv" download>equity_C.csv</a><a href="trades_A2.csv" download>trades_A2.csv</a><a href="equity_A2.csv" download>equity_A2.csv</a><a href="trades_B2.csv" download>trades_B2.csv</a><a href="equity_B2.csv" download>equity_B2.csv</a><a href="trades_C2.csv" download>trades_C2.csv</a><a href="equity_C2.csv" download>equity_C2.csv</a></div>
+<div class="files"><a href="summary.json" download>summary.json</a><a href="summary.csv" download>summary.csv</a><a href="signal_diagnostics.csv" download>signal_diagnostics.csv</a><a href="trades_A.csv" download>trades_A.csv</a><a href="equity_A.csv" download>equity_A.csv</a><a href="trades_00631L_A.csv" download>trades_00631L_A.csv</a><a href="equity_00631L_A.csv" download>equity_00631L_A.csv</a><a href="trades_B.csv" download>trades_B.csv</a><a href="equity_B.csv" download>equity_B.csv</a><a href="trades_00631L_B.csv" download>trades_00631L_B.csv</a><a href="equity_00631L_B.csv" download>equity_00631L_B.csv</a><a href="trades_C.csv" download>trades_C.csv</a><a href="equity_C.csv" download>equity_C.csv</a><a href="trades_00631L_C.csv" download>trades_00631L_C.csv</a><a href="equity_00631L_C.csv" download>equity_00631L_C.csv</a><a href="trades_A2.csv" download>trades_A2.csv</a><a href="equity_A2.csv" download>equity_A2.csv</a><a href="trades_00631L_A2.csv" download>trades_00631L_A2.csv</a><a href="equity_00631L_A2.csv" download>equity_00631L_A2.csv</a><a href="trades_B2.csv" download>trades_B2.csv</a><a href="equity_B2.csv" download>equity_B2.csv</a><a href="trades_00631L_B2.csv" download>trades_00631L_B2.csv</a><a href="equity_00631L_B2.csv" download>equity_00631L_B2.csv</a><a href="trades_C2.csv" download>trades_C2.csv</a><a href="equity_C2.csv" download>equity_C2.csv</a><a href="trades_00631L_C2.csv" download>trades_00631L_C2.csv</a><a href="equity_00631L_C2.csv" download>equity_00631L_C2.csv</a><a href="trades_B3.csv" download>trades_B3.csv</a><a href="equity_B3.csv" download>equity_B3.csv</a><a href="trades_00631L_B3.csv" download>trades_00631L_B3.csv</a><a href="equity_00631L_B3.csv" download>equity_00631L_B3.csv</a><a href="trades_DCA.csv" download>trades_DCA.csv</a><a href="equity_DCA.csv" download>equity_DCA.csv</a><a href="trades_00631L_DCA.csv" download>trades_00631L_DCA.csv</a><a href="equity_00631L_DCA.csv" download>equity_00631L_DCA.csv</a><a href="comparison_00631L.json" download>comparison_00631L.json</a></div>
 </section>
 </main></body></html>
