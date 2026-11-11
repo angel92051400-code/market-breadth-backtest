@@ -50,6 +50,8 @@ def run(args):
     aligned_etf = prices.loc[prices.index.intersection(signals.index)].sort_index()
     dca_ledger,dca_curve,dca_summary=evaluate_monthly_dca(
         aligned_etf,cfg,monthly_amount=args.dca_amount)
+    # Common buy/hold is intentionally the same reference across all rows.
+    dca_summary['buy_hold_return_pct'] = summaries[0]['buy_hold_return_pct']
     dca_ledger.to_csv(output/'trades_DCA.csv',index=False)
     dca_curve.to_csv(output/'equity_DCA.csv',index_label='date')
     summaries.append(dca_summary)
