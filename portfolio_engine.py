@@ -5,9 +5,11 @@ Each distinct exit event sells 50% of the *then-current* share position.
 A session crossing both hot thresholds 50/60 creates two events, hence
 sequentially sells 50% then 50% of remaining shares (75% total).
 
-All signal decisions use data at day t close and fill at the next common
-trading session's ETF adjusted open. Trades require cash, use weighted-average
-cost accounting for realized P/L, and value remaining shares at last close.
+All signal decisions use day-t close and fill at next common trading
+session adjusted open. Every valid signal fills for exactly NT$10,000.
+If sale proceeds/cash cannot cover it, the shortfall is an external capital
+contribution; recycled sale proceeds are not new contributions.
+Realized and remaining unrealized P/L use weighted-average cost.
 """
 from __future__ import annotations
 import numpy as np
@@ -121,7 +123,7 @@ def evaluate_portfolio(signals: pd.DataFrame, prices: pd.DataFrame, cfg, strateg
         raise ValueError(f"Unknown strategy {strategy}")
     if not (0 < cfg.buy < cfg.sell < cfg.very_hot <= 100):
         raise ValueError("Thresholds must increase: buy < hot < very hot")
-    if not (0 < cfg.sell_fraction <= 1 and cfg.buy_amount > 0 and cfg.initial_cash > 0):
+    if not (0 < cfg.sell_fraction <= 1 and cfg.buy_amount > 0):
         raise ValueError("Invalid order size or sell fraction")
     aligned = signals.join(
         prices[["Open", "Close"]].rename(columns={"Open":"etf_open","Close":"etf_close"}),
@@ -129,7 +131,11 @@ def evaluate_portfolio(signals: pd.DataFrame, prices: pd.DataFrame, cfg, strateg
     ).sort_index()
     if aligned.empty:
         raise ValueError("No overlapping ETF and breadth history")
-    cash, shares, cost_basis = float(cfg.initial_cash), 0.0, 0.0
+    # Start with no externally funded capital. Contribute only when an actual
+    # order needs more cash, so a notional account limit never blocks signals.
+    cash, shares, cost_basis = 0.0, 0.0, 0.0
+    external_capital = 0.0
+    deposits = []
     pending = []
     rows, curve_rows = [], []
     buys, sells, skipped_buys = 0, 0, 0
@@ -144,10 +150,14 @@ def evaluate_portfolio(signals: pd.DataFrame, prices: pd.DataFrame, cfg, strateg
         if pending and pd.notna(op) and np.isfinite(op) and op > 0:
             for action, reason, signal_day, support, target in pending:
                 if action == "buy":
-                    if cash + 1e-8 < cfg.buy_amount:
-                        skipped_buys += 1
-                        continue
                     amount = float(cfg.buy_amount)
+                    contribution = max(0.0, amount - cash)
+                    if contribution > 1e-8:
+                        cash += contribution
+                        external_capital += contribution
+                        deposits.append({"date":day.date().isoformat(),
+                                         "amount":contribution,
+                                         "reason":"buy_funding_" + strategy})
                     qty = amount / (float(op) * (1 + cfg.buy_fee))
                     cash -= amount
                     shares += qty
@@ -170,7 +180,8 @@ def evaluate_portfolio(signals: pd.DataFrame, prices: pd.DataFrame, cfg, strateg
                         "signal_date":signal_day.date().isoformat(),
                         "date":day.date().isoformat(), "strategy":strategy,
                         "action":"BUY","reason":reason,"price_adjusted":float(op),
-                        "shares":qty,"gross_value":amount,"realized_profit":np.nan,
+                        "shares":qty,"gross_value":amount,
+                        "external_contribution":contribution,"realized_profit":np.nan,
                         "realized_return_pct":np.nan,"cash_after":cash,"shares_after":shares,
                     })
                 elif action == "sell" and shares > 1e-12:
@@ -188,6 +199,7 @@ def evaluate_portfolio(signals: pd.DataFrame, prices: pd.DataFrame, cfg, strateg
                         "date":day.date().isoformat(), "strategy":strategy,
                         "action":"SELL","reason":reason,"price_adjusted":float(op),
                         "shares":qty,"gross_value":proceeds,
+                        "external_contribution":0.0,
                         "realized_profit":profit,
                         "realized_return_pct":(proceeds/allocated_cost-1)*100 if allocated_cost>0 else np.nan,
                         "cash_after":cash,"shares_after":shares,
@@ -215,13 +227,18 @@ def evaluate_portfolio(signals: pd.DataFrame, prices: pd.DataFrame, cfg, strateg
                 if accumulated_buys>0 and pd.notna(cl) else np.nan,
             "cumulative_buy_cost":accumulated_buys,
             "cumulative_sell_proceeds":accumulated_sells,
+            "external_capital":external_capital,
+            "capital_profit":equity-external_capital if pd.notna(equity) else np.nan,
+            "capital_roi_pct":(equity-external_capital)/external_capital*100
+                if external_capital > 0 and pd.notna(equity) else np.nan,
             "position":int(shares>0),"breadth":row["breadth"],
             "etf_close":cl,"pending_action":";".join(x[0] for x in pending)
         })
         previous_index = index_now
     ledger = pd.DataFrame(rows,columns=[
         "signal_date","date","strategy","action","reason","price_adjusted","shares",
-        "gross_value","realized_profit","realized_return_pct","cash_after","shares_after",
+        "gross_value","external_contribution",
+        "realized_profit","realized_return_pct","cash_after","shares_after",
     ])
     curve = pd.DataFrame(curve_rows).set_index("date")
     curve["drawdown_pct"] = (curve["equity"]/curve["equity"].cummax()-1)*100
@@ -245,18 +262,35 @@ def evaluate_portfolio(signals: pd.DataFrame, prices: pd.DataFrame, cfg, strateg
     # purchases. Idle cash is explicitly excluded. A reused dollar is counted
     # again on each purchase; disclose this turnover-based denominator.
     traded_roi = (profit_on_trades/purchases*100) if purchases>0 else None
+    # Gross buys may recycle the same money many times. User-defined
+    # capital ROI uses only the cash actually added from outside.
+    capital_roi = (profit_on_trades/external_capital*100) if external_capital>0 else None
+    if external_capital > 0:
+        from dca_baseline import _xirr
+        flows = [(pd.Timestamp(x["date"]).date(), -float(x["amount"])) for x in deposits]
+        capital_xirr = _xirr(flows + [(aligned.index[-1].date(), float(curve["equity"].iloc[-1]))])
+    else:
+        capital_xirr = None
     stats = {
         "strategy":strategy,"completed_trades":n,"buy_orders":buys,"sell_orders":sells,
         "total_invested":purchases,
         "total_sale_proceeds":sales,
         "ending_market_value":remaining_value,
         "trading_profit":profit_on_trades,
-        "invested_return_pct":traded_roi,
+        "invested_return_pct":capital_roi,
+        "turnover_return_pct":traded_roi,
+        "external_capital":external_capital,
+        "capital_contributions_count":len(deposits),
+        "capital_deposits":deposits,
+        "capital_xirr_pct":capital_xirr,
+        "capital_profit":profit_on_trades,
         "skipped_buys_insufficient_cash":skipped_buys,
         "wins":win,"win_rate_pct":float(win/n*100) if n else None,
         "average_trade_return_pct":float(realized.mean()) if n else None,
         "median_trade_return_pct":float(realized.median()) if n else None,
-        "strategy_return_pct":float((curve["equity"].iloc[-1]/cfg.initial_cash-1)*100),
+        # Historical 100k account return is no longer meaningful under
+        # unconstrained external funding. Preserve field as a compatible alias.
+        "strategy_return_pct":capital_roi,
         "buy_hold_return_pct":float((last/first-1)*100) if pd.notna(first) and first>0 else None,
         "max_drawdown_pct":float(curve["drawdown_pct"].min()),
         "exposure_pct":float(curve["position"].mean()*100),
