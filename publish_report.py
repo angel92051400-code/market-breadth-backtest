@@ -97,7 +97,7 @@ a{{color:#8ac4ff}}
 目前資料使用當前前 640 大股票回推，存在存活者偏差。</p>
 </section>
 <section class="panel">
-<h2>三種策略規則</h2>
+<h2>六組策略規則（原版 A/B/C＋新增 A2/B2/C2）</h2>
 {strategy_desc}
 </section>
 <section class="panel">
