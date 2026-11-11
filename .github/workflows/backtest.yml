@@ -14,9 +14,9 @@ on:
         required: true
         type: string
   schedule:
-    # GitHub cannot directly signal another repository without credentials.
-    # Poll hourly and rebuild only when upstream market-data HTML changes.
-    - cron: '23 * * * *'
+    # Weekly on Sundays 21:23 Taipei time (13:23 UTC); skip if source unchanged.
+    # workflow_dispatch remains available for immediate user-triggered runs.
+    - cron: '23 13 * * 0'
   push:
     branches: [main]
     paths:
