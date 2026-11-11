@@ -18,8 +18,10 @@ def generate(source=Path("output"), dest=Path("docs")):
     rows = payload["results"]
     dest.mkdir(parents=True, exist_ok=True)
     files = ["report.html", "summary.json", "summary.csv", "signal_diagnostics.csv"]
-    for strategy in ("A", "B", "C", "A2", "B2", "C2", "DCA"):
+    for strategy in ("A", "B", "C", "A2", "B2", "C2", "B3", "DCA"):
         files.extend((f"trades_{strategy}.csv", f"equity_{strategy}.csv"))
+        files.extend((f"trades_00631L_{strategy}.csv", f"equity_00631L_{strategy}.csv"))
+    files.append("comparison_00631L.json")
     for filename in files:
         file = source / filename
         if not file.is_file():
@@ -37,6 +39,36 @@ def generate(source=Path("output"), dest=Path("docs")):
         '<p><strong>B2｜費波那契反彈</strong>：靠近支撐且止跌反彈買進；回落6%、支撐失效或45交易日減碼。</p>'
         '<p><strong>C2｜綜合波段</strong>：寬度上穿40%且高於費波那契50%價位買進；'
         '上穿50/60%減碼；寬度失守、指數跌破Fib50%或45交易日再減碼。</p>'
+        '<p><strong>B3｜寬鬆費波那契</strong>：價格上漲且距23.6/38.2/50/61.8/78.6%回撤位不超過6%買進；'
+        '參考1.414倍延伸目標、支撐跌破6%或60日減碼50%。仍屬探索性策略。</p>'
+    )
+    leveraged=payload.get("leveraged_comparison")
+    if not leveraged or leveraged.get("ticker") != "00631L.TW":
+        raise ValueError("Missing true-price 00631L comparison")
+    lever_rows=leveraged["results"]
+    paired={r["strategy"]:r for r in lever_rows}
+    combined_rows="\\n".join(
+        "<tr>"
+        f"<td>{html.escape(str(r['strategy']))}</td>"
+        f"<td>{display(r['strategy_return_pct'],2,'%')}</td>"
+        f"<td>{display(paired[r['strategy']]['strategy_return_pct'],2,'%')}</td>"
+        f"<td>{display(r['max_drawdown_pct'],2,'%')}</td>"
+        f"<td>{display(paired[r['strategy']]['max_drawdown_pct'],2,'%')}</td>"
+        f"<td>{int(r.get('buy_orders',0))} / {int(paired[r['strategy']].get('buy_orders',0))}</td>"
+        "</tr>" for r in rows
+    )
+    leveraged_details=(
+        '<p>兩檔標的使用相同市場寬度／加權指數訊號、共同交易日期、'
+        '初始資金10萬元、每次買進1萬元與賣出當時持股50%。'
+        '00631L是真實調整後ETF價格，不是把0050乘以二。</p>'
+        '<div class="table-wrap"><table><thead><tr><th>策略</th>'
+        '<th>0050總報酬</th><th>00631L總報酬</th><th>0050最大回撤</th>'
+        '<th>00631L最大回撤</th><th>買入筆數 0050 / 00631L</th>'
+        '</tr></thead><tbody>'+combined_rows+'</tbody></table></div>'
+        f'<p>共同交易區間：{html.escape(leveraged["first_date"])}～'
+        f'{html.escape(leveraged["last_date"])}（{leveraged["matched_dates"]}天）。'
+        '00631L以臺灣50單日兩倍漲跌為目標；長期報酬並不等於0050報酬的兩倍，'
+        '且可能有顯著放大回撤與波動耗損。須符合槓桿ETF適格條件。</p>'
     )
     dca = next((r for r in rows if r['strategy'] == 'DCA'), None)
     if dca is None:
@@ -130,7 +162,7 @@ a{{color:#8ac4ff}}
 目前資料使用當前前 640 大股票回推，存在存活者偏差。</p>
 </section>
 <section class="panel">
-<h2>六組策略＋0050 定期定額基準</h2>
+<h2>七組策略＋0050 定期定額基準</h2>
 {strategy_desc}
 </section>
 <section class="panel">
@@ -138,11 +170,15 @@ a{{color:#8ac4ff}}
 <div class="table-wrap"><table>
 <thead><tr><th>策略</th><th>買進次數</th><th>賣出次數</th><th>賣出獲利率</th><th>策略總報酬</th><th>最大回撤</th><th>持倉比例</th><th>0050 一次買入持有報酬*</th></tr></thead>
 <tbody>{body_rows}</tbody></table></div>
-<p class="muted">* 六組策略與定期定額使用相同期間的 0050 一次買入持有基準，因此這一欄每列相同是正常的。持倉比例指有部位的交易日占比；獲利率按每次賣出50%所實現的盈虧計算，不是完整往返交易勝率；剩餘持股市值計入總報酬。起始資金100,000元，六組訊號策略每次買入10,000元、每次賣出50%現有持股；定期定額每月買入3,000元。六組策略屬探索性研究假設，並非最適化結果。資料從目前來源最早日期開始；費波那契須先累積120個已完成交易日才有訊號。</p>
+<p class="muted">* 七組策略與定期定額使用相同期間的 0050 一次買入持有基準，因此這一欄每列相同是正常的。持倉比例指有部位的交易日占比；獲利率按每次賣出50%所實現的盈虧計算，不是完整往返交易勝率；剩餘持股市值計入總報酬。起始資金100,000元，七組訊號策略每次買入10,000元、每次賣出50%現有持股；定期定額每月買入3,000元。新增 B3 與其他策略屬探索性研究假設，並非最適化結果。資料從目前來源最早日期開始；費波那契須先累積120個已完成交易日才有訊號。</p>
 </section>
 <section class="panel">
 <h2>0050 每月 1 日定期定額：兩種資金條件</h2>
 {dca_details}
+</section>
+<section class="panel">
+<h2>0050 與 00631L 正二同期間實際價格比較</h2>
+{leveraged_details}
 </section>
 <section class="panel">
 <h2>互動圖表</h2>
