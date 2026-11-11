@@ -58,8 +58,15 @@ def test_published_site_has_new_five_strategies_and_dca(tmp_path):
     assert "實際外部投入本金" in page
     assert "12.35%" in page
     assert "一次買入持有（NT$10,000）" in page
-    assert page.count("<td><strong>0050</strong></td>")==7
-    assert page.count("<td><strong>00631L</strong></td>")==7
+    # One row per strategy, with two returns in the last columns.
+    assert page.count("<tr class='")==7
+    assert "<th>0050 報酬率</th><th>正二報酬率</th>" in page
+    assert page.count('class="chart-group"')==7
+    assert page.count('class="bar-row"')==14
+    assert "本金報酬率長條圖" in page
+    assert page.index("<th>0050 報酬率</th>")<page.index("<th>正二報酬率</th>")
+    assert 'class="ret50">12.35%</td>' in page
+    assert 'class="ret2">20.00%</td>' in page
     assert "兩種資金條件" not in page
     assert "期末現金（備註）" not in page
     assert "0050 一次買入持有報酬*" not in page
