@@ -15,7 +15,7 @@ from __future__ import annotations
 import numpy as np
 import pandas as pd
 
-STRATEGIES = ("A", "B", "C", "A2", "B2", "C2", "B3")
+STRATEGIES = ("A", "B", "C", "A2", "B2", "C2", "B3", "A3", "B4", "C3", "D")
 NAMES = {
     "A": "原版：寬度20%反彈買進，50/60%分兩階段減碼",
     "B": "原版：費波那契收復支撐買進，達固定目標或跌破支撐減碼",
@@ -24,6 +24,10 @@ NAMES = {
     "B2": "費波那契反彈買進，6%追蹤回撤、失守支撐或45日減碼",
     "C2": "寬度40%＋Fib50%買進，50/60%減碼，跌破條件或45日風控",
     "B3": "寬鬆費波那契回升（距回撤位±6%），1.414倍延伸目標或風控半數賣出",
+    "A3": "寬度上穿30%買進；寬度回落50%或指數跌穿SMA20減碼",
+    "B4": "費波那契支撐回踩後反彈買進；同一支撐波段只買一次，失守支撐/6%追蹤回撤減碼",
+    "C3": "寬度30%回升搭配Fib止跌；寬度及趨勢共同轉弱/失守支撐減碼",
+    "D": "加權指數突破前60交易日高點買進，跌破20日均線減碼",
 }
 
 
@@ -68,6 +72,29 @@ def _new_orders(s, i, strategy, cfg, lots_active, age, fib_state):
             # Safety exit takes priority over independent hot-tier events.
             if exits and exits[0] in ("breadth_below_40", "fib_50_failure"):
                 exits = exits[:1]
+        elif strategy == "A3":
+            if bool(row["exit_A3_breadth"]):
+                exits.append("breadth_cross_below_50")
+            if bool(row["exit_A3_trend"]):
+                exits.append("index_break_sma20")
+            # Simultaneous weakness is one exit event, not two copies of
+            # the same trend reversal.
+            exits=exits[:1]
+        elif strategy == "B4":
+            support, peak=fib_state["support"],fib_state["previous_high"]
+            if support is not None and _cross_down(index,old_index,support*.97):
+                exits.append("fib_support_break_3pct")
+            elif peak is not None and _cross_down(index,old_index,peak*.94):
+                exits.append("index_trailing_6pct")
+        elif strategy == "C3":
+            if bool(row["exit_C3_weak"]):
+                exits.append("breadth_and_index_weakness")
+            elif fib_state["support"] is not None and _cross_down(
+                    index,old_index,fib_state["support"]*.97):
+                exits.append("fib_support_break_3pct")
+        elif strategy == "D":
+            if bool(row["exit_D"]):
+                exits.append("index_break_sma20")
         elif strategy == "B":
             target, stop = fib_state["target"], fib_state["stop"]
             if target is not None and _cross_up(index, old_index, target):
@@ -106,6 +133,12 @@ def _new_orders(s, i, strategy, cfg, lots_active, age, fib_state):
             if pd.notna(row["b3_support"]) and pd.notna(row["b3_target"]):
                 support = float(row["b3_support"])
                 target = float(row["b3_target"])
+            else:
+                return []
+        if strategy in ("B4","C3"):
+            col="b4_support" if strategy=="B4" else "c3_support"
+            if pd.notna(row[col]):
+                support=float(row[col])
             else:
                 return []
         if strategy == "B2":
@@ -173,6 +206,10 @@ def evaluate_portfolio(signals: pd.DataFrame, prices: pd.DataFrame, cfg, strateg
                     if strategy == "B3":
                         fib_state["target"] = target
                         fib_state["stop"] = support * .94
+                    if strategy in ("B4","C3"):
+                        fib_state["support"]=support
+                        if strategy=="B4":
+                            fib_state["previous_high"]=float(row["taiex_close"]) if pd.notna(row["taiex_close"]) else None
                     if strategy == "B2":
                         fib_state["support"] = support
                         fib_state["previous_high"] = float(row["taiex_close"]) if pd.notna(row["taiex_close"]) else None
@@ -208,7 +245,7 @@ def evaluate_portfolio(signals: pd.DataFrame, prices: pd.DataFrame, cfg, strateg
         # Index high is tracked after fills. For B2, use the last *completed*
         # session high for trail crossing, then include current close.
         index_now = row["taiex_close"]
-        if shares > 0 and strategy == "B2" and pd.notna(index_now):
+        if shares > 0 and strategy in ("B2","B4") and pd.notna(index_now):
             hi = fib_state["previous_high"]
             if hi is None or not np.isfinite(hi):
                 fib_state["previous_high"] = float(index_now)
