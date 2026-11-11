@@ -54,12 +54,18 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          # Always publish the freshly built report on top of the latest main.
+          # Prevent rebase conflicts if main changed while the backtest ran.
+          cp -a docs "$RUNNER_TEMP/latest-backtest-docs"
+          git fetch origin main
+          git reset --hard origin/main
+          mkdir -p docs
+          cp -a "$RUNNER_TEMP/latest-backtest-docs/." docs/
           git add docs/
           if git diff --cached --quiet; then
             echo "報告沒有變化"
           else
             git commit -m "Publish latest backtest results to docs/"
-            git pull --rebase origin main
             git push origin HEAD:main
           fi
       - name: Upload report attachment backup
