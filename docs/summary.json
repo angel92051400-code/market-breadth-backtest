@@ -4,7 +4,8 @@
     "universe": "640",
     "total": 640,
     "sample_days": 486,
-    "source": "https://raw.githubusercontent.com/angel92051400-code/my-market-breadth/main/index.html"
+    "source": "https://raw.githubusercontent.com/angel92051400-code/my-market-breadth/main/index.html",
+    "source_sha256": "45dffb90444d37a6b4576282a1eca38fe97b506cfb919c2fd866543280bcd7fb"
   },
   "ticker": "0050.TW",
   "config": {
@@ -32,34 +33,31 @@
       "completed_trades": 1,
       "wins": 1,
       "win_rate_pct": 100.0,
-      "average_trade_return_pct": 152.85306241373152,
-      "median_trade_return_pct": 152.85306241373152,
-      "strategy_return_pct": 149.3521876727652,
-      "buy_hold_return_pct": 115.97376183112189,
+      "average_trade_return_pct": 152.8530856848524,
+      "median_trade_return_pct": 152.8530856848524,
+      "strategy_return_pct": 140.89549780207616,
+      "buy_hold_return_pct": 108.64905342251193,
       "max_drawdown_pct": -20.600858369098706,
       "open_trade": {
         "entry_date": "2026-07-22",
-        "unrealized_pct": -1.384549076664121
+        "unrealized_pct": -4.729065437500656
       },
       "first_date": "2024-11-11",
-      "last_date": "2026-11-11"
+      "last_date": "2026-11-10"
     },
     {
       "strategy": "B",
       "completed_trades": 1,
       "wins": 1,
       "win_rate_pct": 100.0,
-      "average_trade_return_pct": 15.861171271476483,
-      "median_trade_return_pct": 15.861171271476483,
-      "strategy_return_pct": 18.216418056113003,
-      "buy_hold_return_pct": 115.97376183112189,
-      "max_drawdown_pct": -1.966753825053702,
-      "open_trade": {
-        "entry_date": "2026-11-11",
-        "unrealized_pct": 2.0328180345405844
-      },
+      "average_trade_return_pct": 15.861189868873392,
+      "median_trade_return_pct": 15.861189868873392,
+      "strategy_return_pct": 15.861189868873392,
+      "buy_hold_return_pct": 108.64905342251193,
+      "max_drawdown_pct": -1.966746034262612,
+      "open_trade": null,
       "first_date": "2024-11-11",
-      "last_date": "2026-11-11"
+      "last_date": "2026-11-10"
     },
     {
       "strategy": "C",
@@ -69,11 +67,11 @@
       "average_trade_return_pct": 137.50771941412654,
       "median_trade_return_pct": 137.50771941412654,
       "strategy_return_pct": 137.5077194141266,
-      "buy_hold_return_pct": 115.97376183112189,
+      "buy_hold_return_pct": 108.64905342251193,
       "max_drawdown_pct": -10.844114243836112,
       "open_trade": null,
       "first_date": "2024-11-11",
-      "last_date": "2026-11-11"
+      "last_date": "2026-11-10"
     }
   ]
 }
