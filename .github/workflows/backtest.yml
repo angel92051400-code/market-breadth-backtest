@@ -13,14 +13,6 @@ on:
         default: '50'
         required: true
         type: string
-  # One-time deploy on merge; remove after successful report verification.
-  push:
-    branches: [main]
-    paths:
-      - portfolio_engine.py
-      - run_backtest.py
-      - publish_report.py
-
 permissions:
   contents: write
 
