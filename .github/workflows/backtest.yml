@@ -1,6 +1,6 @@
 name: Manual Strategy Backtest
 on:
-  # Run manually with custom thresholds; re-run once when the publishing code is deployed.
+  # Schedule disabled by user request. The workflow is manually runnable.
   workflow_dispatch:
     inputs:
       buy:
@@ -13,10 +13,6 @@ on:
         default: '70'
         required: true
         type: string
-  schedule:
-    # Weekly on Sundays 21:23 Taipei time (13:23 UTC); skip if source unchanged.
-    # workflow_dispatch remains available for immediate user-triggered runs.
-    - cron: '23 13 * * 0'
   push:
     branches: [main]
     paths:
