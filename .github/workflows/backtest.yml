@@ -13,14 +13,6 @@ on:
         default: '50'
         required: true
         type: string
-  # One-time automatic run when this PR is merged, then disabled again.
-  push:
-    branches: [main]
-    paths:
-      - strategy_v3.py
-      - run_backtest.py
-      - publish_report.py
-
 permissions:
   contents: write
 
@@ -41,23 +33,18 @@ jobs:
         id: source
         run: python check_source.py
       - name: Install dependencies
-        if: steps.source.outputs.changed == 'true' || github.event_name == 'push' || github.event_name == 'workflow_dispatch'
         run: pip install -r requirements.txt
       - name: Run unit tests
-        if: steps.source.outputs.changed == 'true' || github.event_name == 'push' || github.event_name == 'workflow_dispatch'
         run: python -m pytest -q
       - name: Backtest
-        if: steps.source.outputs.changed == 'true' || github.event_name == 'push' || github.event_name == 'workflow_dispatch'
         env:
           BUY: ${{ inputs.buy || '20' }}
           SELL: ${{ inputs.sell || '50' }}
         run: |
           python run_backtest.py --buy "$BUY" --sell "$SELL"
       - name: Build browsable static website
-        if: steps.source.outputs.changed == 'true' || github.event_name == 'push' || github.event_name == 'workflow_dispatch'
         run: python publish_report.py
       - name: Publish latest report to docs/
-        if: steps.source.outputs.changed == 'true' || github.event_name == 'push' || github.event_name == 'workflow_dispatch'
         shell: bash
         run: |
           git config user.name "github-actions[bot]"
@@ -78,7 +65,7 @@ jobs:
           fi
       - name: Upload report attachment backup
         uses: actions/upload-artifact@v4
-        if: always() && (steps.source.outputs.changed == 'true' || github.event_name == 'push' || github.event_name == 'workflow_dispatch')
+        if: always()
         with:
           name: strategy-backtest-report
           path: output/
