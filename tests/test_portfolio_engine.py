@@ -15,8 +15,8 @@ def data():
     },index=idx)
     signals = pd.DataFrame({
         "breadth":breadth,
-        "taiex_close":[100]*18,"fib_500":[95]*17,
-        "fib_382":[110]*17,"fib_618":[90]*17,
+        "taiex_close":[100]*18,"fib_500":[95]*18,
+        "fib_382":[110]*18,"fib_618":[90]*18,
     },index=idx)
     signals["entry_A"] = (signals.breadth.shift(1)<=20)&(signals.breadth>20)
     signals["entry_C"]=signals["entry_A"]
