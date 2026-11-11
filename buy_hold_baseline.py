@@ -45,6 +45,7 @@ def evaluate_buy_hold(prices:pd.DataFrame,cfg,amount:float=10000.0):
         "wins":0,"win_rate_pct":None,"external_capital":amount,
         "total_invested":amount,"trading_profit":last_value-amount,
         "invested_return_pct":(last_value/amount-1)*100,
+        "strategy_return_pct":(last_value/amount-1)*100,
         "ending_market_value":last_value,"total_sale_proceeds":0.0,
         "max_drawdown_pct":float(curve.drawdown_pct.min()),
         "exposure_pct":100.0,
