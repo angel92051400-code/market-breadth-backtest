@@ -77,3 +77,13 @@ def test_dca_daily_values_do_not_change_with_future_prices():
     prices.loc[prices.index[40]:,"Close"]=156
     _,later,_=evaluate_monthly_dca(prices,Config(),3000.)
     pd.testing.assert_series_equal(first.equity.iloc[:40],later.equity.iloc[:40])
+
+def test_dca_roi_does_not_include_idle_cash():
+    dates=pd.date_range("2025-01-01",periods=4,freq="MS")
+    prices=pd.DataFrame({"Open":[100.]*4,"Close":[100.,110.,120.,130.]},index=dates)
+    ledger,curve,r=evaluate_monthly_dca(prices,Config(initial_cash=100000.),3000.)
+    assert r["invested_return_pct"]==pytest.approx(
+        (r["ending_market_value"]/r["total_invested"]-1)*100)
+    assert r["trading_profit"]==pytest.approx(
+        r["ending_market_value"]-r["total_invested"])
+    assert r["invested_return_pct"]!=pytest.approx(r["strategy_return_pct"])
