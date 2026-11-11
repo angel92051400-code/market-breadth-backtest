@@ -64,16 +64,18 @@ def test_50_and_60_hit_same_day_sell_sequential_halves():
     assert sells.iloc[1].shares==pytest.approx(sells.iloc[0].shares/2)
 
 
-def test_cash_limit_and_no_invented_capital():
+def test_every_entry_buys_ten_thousand_without_cap():
     signals,prices=data()
     signals["entry_A"]=True
     signals["breadth"]=40
     cfg=Config(initial_cash=20000,buy_amount=10000)
     ledger,curve,stats=evaluate_portfolio(signals,prices,cfg,"A")
-    assert stats["buy_orders"]==2
-    assert stats["skipped_buys_insufficient_cash"]>0
-    assert abs(curve.cash.min())<1e-8
-    assert curve.equity.min()>0
+    assert stats["buy_orders"]==len(signals)-1  # every prior-close signal fills next open
+    assert stats["skipped_buys_insufficient_cash"]==0
+    assert stats["external_capital"]==pytest.approx((len(signals)-1)*10000)
+    assert all(ledger[ledger.action=="BUY"].gross_value==10000)
+    assert curve.cash.min()>=-1e-8
+    assert curve.external_capital.iloc[-1]==pytest.approx(stats["external_capital"])
 
 
 def test_realized_profit_and_cash_ledger_reconciles():
@@ -84,9 +86,10 @@ def test_realized_profit_and_cash_ledger_reconciles():
     assert np.isfinite(curve.cash).all()
     assert np.isfinite(curve.shares).all()
     assert (curve.equity>=curve.cash-1e-8).all()
-    assert stats["strategy_return_pct"]==pytest.approx(
-        (curve.equity.iloc[-1]/cfg.initial_cash-1)*100
+    assert stats["invested_return_pct"]==pytest.approx(
+        (curve.equity.iloc[-1]-stats["external_capital"])/stats["external_capital"]*100
     )
+    assert stats["strategy_return_pct"]==pytest.approx(stats["invested_return_pct"])
 
 
 def test_fib_B_independent_of_breadth():
@@ -118,6 +121,33 @@ def test_invested_roi_excludes_uninvested_cash():
     expected=(net_sells+last_holding-buys)/buys*100
     assert r["total_invested"]==pytest.approx(buys)
     assert r["trading_profit"]==pytest.approx(net_sells+last_holding-buys)
-    assert r["invested_return_pct"]==pytest.approx(expected)
+    assert r["turnover_return_pct"]==pytest.approx(expected)
     assert c.invested_roi_pct.iloc[-1]==pytest.approx(expected)
-    assert r["strategy_return_pct"]!=pytest.approx(expected)
+    assert r["invested_return_pct"]==pytest.approx(
+        r["trading_profit"]/r["external_capital"]*100)
+    assert c.capital_roi_pct.iloc[-1]==pytest.approx(r["invested_return_pct"])
+    assert r["external_capital"] <= r["total_invested"]
+    assert sum(x["amount"] for x in r["capital_deposits"])==pytest.approx(r["external_capital"])
+
+def test_recycled_sales_used_first_and_only_shortfall_is_external():
+    signals,prices=data()
+    signals["entry_A"]=True
+    cfg=Config(buy_amount=10000)
+    ledger,curve,stats=evaluate_portfolio(signals,prices,cfg,"A")
+    buys=ledger[ledger.action=="BUY"]
+    assert len(buys)>10
+    assert stats["external_capital"]<=stats["total_invested"]
+    assert stats["external_capital"]<stats["total_invested"]
+    assert stats["buy_orders"]==len(buys)
+    assert all(buys.external_contribution>=0)
+    assert all(buys.external_contribution<=10000)
+    assert stats["capital_contributions_count"]==len(stats["capital_deposits"])
+
+
+def test_capital_roi_not_penalized_by_unused_hundred_thousand():
+    signals,prices=data()
+    a,curve,stats=evaluate_portfolio(signals,prices,Config(initial_cash=100000),"A")
+    b,curve2,stats2=evaluate_portfolio(signals,prices,Config(initial_cash=10000),"A")
+    assert stats["external_capital"]==pytest.approx(stats2["external_capital"])
+    assert stats["invested_return_pct"]==pytest.approx(stats2["invested_return_pct"])
+    pd.testing.assert_series_equal(curve.capital_roi_pct,curve2.capital_roi_pct)
