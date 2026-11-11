@@ -12,6 +12,7 @@ from experimental_strategies import VARIANTS,add_variant_signals
 from portfolio_engine import evaluate_portfolio, NAMES
 from strategy_v3 import ACTIVE_STRATEGIES, DESCRIPTIONS, add_v3_signals
 from dca_baseline import evaluate_monthly_dca
+from buy_hold_baseline import evaluate_buy_hold
 
 def run(args):
     output,cache = Path(args.output),Path(args.cache)
@@ -65,6 +66,10 @@ def run(args):
     lev_dca_ledger.to_csv(output/'trades_00631L_DCA.csv',index=False)
     lev_dca_curve.to_csv(output/'equity_00631L_DCA.csv',index_label='date')
     leveraged_summaries.append(lev_dca)
+    lev_bh_ledger,lev_bh_curve,lev_bh=evaluate_buy_hold(leveraged_prices,cfg,amount=args.buy_amount)
+    lev_bh_ledger.to_csv(output/'trades_00631L_BH.csv',index=False)
+    lev_bh_curve.to_csv(output/'equity_00631L_BH.csv',index_label='date')
+    leveraged_summaries.append(lev_bh)
     # Re-use same matched day horizon for fair paired comparison.
     (output/'comparison_00631L.json').write_text(json.dumps({
         'ticker':'00631L.TW',
@@ -85,6 +90,11 @@ def run(args):
     dca_ledger.to_csv(output/'trades_DCA.csv',index=False)
     dca_curve.to_csv(output/'equity_DCA.csv',index_label='date')
     summaries.append(dca_summary)
+    bh_ledger,bh_curve,bh_summary=evaluate_buy_hold(aligned_etf,cfg,amount=args.buy_amount)
+    bh_ledger.to_csv(output/'trades_BH.csv',index=False)
+    bh_curve.to_csv(output/'equity_BH.csv',index_label='date')
+    summaries.append(bh_summary)
+    fig.add_trace(go.Scatter(x=bh_curve.index,y=bh_curve.capital_roi_pct,name='0050 一次買入持有（10,000元）'),row=3,col=1)
     fig.add_trace(go.Scatter(
         x=dca_curve.index,y=dca_curve.invested_roi_pct,name='0050 月初定期定額 3000（實際投入報酬）'
     ),row=3,col=1)
@@ -105,14 +115,14 @@ def run(args):
             'Signal history begins with the oldest available dashboard day; Fibonacci requires a 120-session warmup.',
             'Orders: T+1 next ETF open, buy 10000 TWD on every signal, inject external shortfall without cap, sell 50% on each distinct exit event.',
             'Completed trades and win rate count partial SELL events; strategy capital ROI excludes unused cash and counts only actually deposited funds.',
-            '0050 buy/hold return is the SAME common market benchmark for all strategies; equal values are intentional.',
-            'DCA prefunded benchmark uses initial 100000 in cash and invests 3000 once per calendar month on first ETF trading day. Costs and cash included.',
+            'Buy-and-hold has its own single 10000 adjusted-open purchase and closing adjusted valuation; no repeated benchmark column.',
+            'DCA uses external monthly contributions 3000; unused prefunded account cash is ignored in primary comparison.',
             'Contributions-only DCA assumes NEW 3000 monthly external funds; contribution return/XIRR are not directly comparable with 100000 initial capital strategy returns.',
             '00631L targets 2x Taiwan 50 DAILY, subject to daily compounding, leverage and trading qualification; do not infer long-run return as twice 0050.',
             '0050 and 00631L are compared over their exact shared trading-session intersection.',
             'Strategy ROI uses only actual external deposits to fund buys: (realized plus unrealized profit) / deposits. No initial 100000 cap.',
             'Gross buy totals count recycled sale proceeds; external deposits do not. Always buy 10000 per valid signal, injecting shortfalls and separately reporting XIRR.'],
-        'strategies':{**DESCRIPTIONS,'DCA':'每月第一個交易日投入3000元0050；另列外部逐月投入及XIRR'},
+        'strategies':{**DESCRIPTIONS,'DCA':'每月第一個交易日投入3000元；只計實際外部投入','BH':'第一個共同交易日一次投入10000元，持有至期末'},
         'leveraged_comparison':{
             'ticker':'00631L.TW',
             'matched_dates':len(common),
@@ -120,7 +130,7 @@ def run(args):
             'last_date':common.max().strftime('%Y-%m-%d'),
             'results':leveraged_summaries},
         'results':summaries,
-        'comparison_note':'日常啟用 A/A3/B4/C3/D 加月初3000定期定額。舊版 B/C/A2/B2/C2/B3 已封存，不進入日常績效排名。策略本金採買進時現金不足的外部補款累計，不設10萬上限；已實現與未實現獲利除以實際外部補款。'}
+        'comparison_note':'單一整合表：0050與00631L各含A/A3/B4/C3/D、每月3000定期定額DCA、一次投入10000的BH，使用相同共同交易日。策略以實際外部補款為本金，買進所得重用不重複入本金。'}
     (output/'summary.json').write_text(json.dumps(metadata,ensure_ascii=False,indent=2,default=str),encoding='utf-8')
     print('===== Backtest results =====')
     for s in summaries:
