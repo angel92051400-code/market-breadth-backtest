@@ -10,6 +10,7 @@ from data_sources import download_dashboard,download_etf
 from backtest import Config,build_signals,evaluate
 from experimental_strategies import VARIANTS,add_variant_signals
 from portfolio_engine import evaluate_portfolio, NAMES
+from strategy_v3 import ACTIVE_STRATEGIES, DESCRIPTIONS, add_v3_signals
 from dca_baseline import evaluate_monthly_dca
 
 def run(args):
@@ -29,7 +30,7 @@ def run(args):
     cfg=Config(buy=args.buy,sell=args.sell,buy_amount=args.buy_amount,lookback=args.lookback,
         fib_tolerance=args.tolerance,confirm_window=args.confirm_window,
         buy_fee=args.buy_fee,sell_fee=args.sell_fee,sell_tax=args.sell_tax)
-    signals=add_variant_signals(build_signals(breadth,cfg))
+    signals=add_v3_signals(add_variant_signals(build_signals(breadth,cfg)))
     signals.to_csv(output/'signal_diagnostics.csv',index_label='date')
     fig=make_subplots(rows=3,cols=1,shared_xaxes=True,row_heights=[.32,.32,.36],
         vertical_spacing=.07,subplot_titles=['市場寬度與門檻','加權指數與動態費波那契參考線','實際外部本金報酬率（無固定資金上限）'])
@@ -39,15 +40,14 @@ def run(args):
     fig.add_trace(go.Scatter(x=signals.index,y=signals.taiex_close,name='TAIEX',line=dict(color='#d6dce9')),row=2,col=1)
     for key,name,color in [('fib_382','Fib 38.2%','#f1cb62'),('fib_500','Fib 50%','#e09d58'),('fib_618','Fib 61.8%','#a784ef')]:
         fig.add_trace(go.Scatter(x=signals.index,y=signals[key],name=name,line=dict(color=color,width=1,dash='dot'),connectgaps=False),row=2,col=1)
-    for strategy,symbol,color in [('A','triangle-up','#ef7070'),('B','diamond','#49beee'),('C','star','#69d5a7'),
-                                  ('A2','triangle-up-open','#e97e9e'),('B2','diamond-open','#74c6ef'),('C2','star-open','#82dfaf'),
-                                  ('B3','circle-open','#fbbf77')]:
+    for strategy,symbol,color in [('A','triangle-up','#ef7070'),('A3','triangle-up-open','#fbbf77'),
+                                  ('B4','diamond','#49beee'),('C3','star','#69d5a7'),('D','square-open','#a784ef')]:
         entries=signals[signals['entry_'+strategy]]
         if len(entries):
             fig.add_trace(go.Scatter(x=entries.index,y=entries.taiex_close,mode='markers',
                 marker=dict(symbol=symbol,size=9,color=color),name=f'{strategy} entry signal'),row=2,col=1)
     summaries=[]
-    for strategy in ('A','B','C',*VARIANTS):
+    for strategy in ACTIVE_STRATEGIES:
         trades,curve,summary=evaluate_portfolio(signals,prices,cfg,strategy)
         trades.to_csv(output/f'trades_{strategy}.csv',index=False)
         curve.to_csv(output/f'equity_{strategy}.csv',index_label='date')
@@ -99,9 +99,9 @@ def run(args):
             'Below 95% quote coverage breadth is missing; signals must not use interpolation.',
             'Adjusted Yahoo OHLC is a total-return proxy, not an executable raw price.',
             'Fibonacci levels use only prior completed sessions; next-open trade.',
-            'B is pure Fibonacci and never uses market breadth. C combines breadth with Fibonacci and breadth-based exits.',
+            'B4 is breadth-independent Fibonacci. C3 combines breadth confirmation and Fibonacci support. D is independent trend-following.',
             'Exploratory analysis, not a verified profitable strategy.',
-            'A2/B2/C2 are predeclared alternative hypotheses, not optimized on test data.',
+            'A3/B4/C3/D are exploratory alternatives proposed after inspecting the old backtest; they are not independent out-of-sample results.',
             'Signal history begins with the oldest available dashboard day; Fibonacci requires a 120-session warmup.',
             'Orders: T+1 next ETF open, buy 10000 TWD on every signal, inject external shortfall without cap, sell 50% on each distinct exit event.',
             'Completed trades and win rate count partial SELL events; strategy capital ROI excludes unused cash and counts only actually deposited funds.',
@@ -112,7 +112,7 @@ def run(args):
             '0050 and 00631L are compared over their exact shared trading-session intersection.',
             'Strategy ROI uses only actual external deposits to fund buys: (realized plus unrealized profit) / deposits. No initial 100000 cap.',
             'Gross buy totals count recycled sale proceeds; external deposits do not. Always buy 10000 per valid signal, injecting shortfalls and separately reporting XIRR.'],
-        'strategies':{**NAMES,'DCA':'每月首個交易日投入3000元0050；同初始資金10萬元，另計外部現金流績效'},
+        'strategies':{**DESCRIPTIONS,'DCA':'每月第一個交易日投入3000元0050；另列外部逐月投入及XIRR'},
         'leveraged_comparison':{
             'ticker':'00631L.TW',
             'matched_dates':len(common),
@@ -120,7 +120,7 @@ def run(args):
             'last_date':common.max().strftime('%Y-%m-%d'),
             'results':leveraged_summaries},
         'results':summaries,
-        'comparison_note':'策略本金採買進時現金不足的外部補款累計，不設10萬上限；已實現＋未實現獲利除以實際外部補款。賣出所得再用於買進不算新本金，另列累計交易額及年化XIRR。定期定額外部本金為每月3000。'}
+        'comparison_note':'日常啟用 A/A3/B4/C3/D 加月初3000定期定額。舊版 B/C/A2/B2/C2/B3 已封存，不進入日常績效排名。策略本金採買進時現金不足的外部補款累計，不設10萬上限；已實現與未實現獲利除以實際外部補款。'}
     (output/'summary.json').write_text(json.dumps(metadata,ensure_ascii=False,indent=2,default=str),encoding='utf-8')
     print('===== Backtest results =====')
     for s in summaries:

@@ -18,7 +18,7 @@ def generate(source=Path("output"), dest=Path("docs")):
     rows = payload["results"]
     dest.mkdir(parents=True, exist_ok=True)
     files = ["report.html", "summary.json", "summary.csv", "signal_diagnostics.csv"]
-    for strategy in ("A", "B", "C", "A2", "B2", "C2", "B3", "DCA"):
+    for strategy in ("A", "A3", "B4", "C3", "D", "DCA"):
         files.extend((f"trades_{strategy}.csv", f"equity_{strategy}.csv"))
         files.extend((f"trades_00631L_{strategy}.csv", f"equity_00631L_{strategy}.csv"))
     files.append("comparison_00631L.json")
@@ -29,18 +29,9 @@ def generate(source=Path("output"), dest=Path("docs")):
         shutil.copyfile(file, dest / filename)
     (dest / ".nojekyll").write_text("", encoding="utf-8")
 
-    strategy_desc = (
-        '<p><strong>A｜純市場寬度</strong>：過冷後回升買進、上穿50%或60%分批賣出。</p>'
-        '<p><strong>B｜純費波那契</strong>：價格向上收復過去 120 日費波那契支撐，'
-        '隔日買進；依訊號當日固定的下一級壓力目標或支撐失效價位出場，不使用市場寬度。</p>'
-        '<p><strong>C｜綜合策略</strong>：過冷回升後五日內且接近費波那契價位買進；'
-        '市場寬度上穿50%或60%分批賣出。</p>'
-        '<p><strong>A2｜寬度波段</strong>：上穿40%進場；失守40%、上穿50/60%或30交易日減碼。</p>'
-        '<p><strong>B2｜費波那契反彈</strong>：靠近支撐且止跌反彈買進；回落6%、支撐失效或45交易日減碼。</p>'
-        '<p><strong>C2｜綜合波段</strong>：寬度上穿40%且高於費波那契50%價位買進；'
-        '上穿50/60%減碼；寬度失守、指數跌破Fib50%或45交易日再減碼。</p>'
-        '<p><strong>B3｜寬鬆費波那契</strong>：價格上漲且距23.6/38.2/50/61.8/78.6%回撤位不超過6%買進；'
-        '參考1.414倍延伸目標、支撐跌破6%或60日減碼50%。仍屬探索性策略。</p>'
+    strategy_desc = "".join(
+        "<p><strong>"+html.escape(k)+"</strong>："+html.escape(v)+"</p>"
+        for k,v in payload["strategies"].items() if k != "DCA"
     )
     leveraged=payload.get("leveraged_comparison")
     if not leveraged or leveraged.get("ticker") != "00631L.TW":
@@ -75,7 +66,7 @@ def generate(source=Path("output"), dest=Path("docs")):
         raise ValueError("Missing monthly DCA summary")
     strategy_desc += (
         '<p><strong>0050 月初定期定額</strong>：每個月 1 日（休市順延下一個交易日）'
-        '買進3,000元。公平比較版本使用與六組策略相同的初始10萬元，從現金扣除；'
+        '買進3,000元。定期定額以實際逐月投入的資金作報酬率分母；'
         '一般定期定額則每月另存3,000元，獨立顯示累計投入與XIRR。</p>'
     )
     ticker = html.escape(str(payload.get("ticker", "0050.TW")))
@@ -164,15 +155,18 @@ a{{color:#8ac4ff}}
 目前資料使用當前前 640 大股票回推，存在存活者偏差。</p>
 </section>
 <section class="panel">
-<h2>七組策略＋0050 定期定額基準</h2>
+<h2>五種主要策略＋0050 定期定額</h2>
 {strategy_desc}
+</section>
+<section class="panel">
+<p class="muted">舊版 B、C、A2、B2、C2、B3 已從主比較表封存。保留 Git 歷史與歷史報告：<a href="archive/legacy_summary_pre_v3.json" download>舊策略績效快照</a>。新增策略僅屬探索性研究，勿視為樣本外驗證。</p>
 </section>
 <section class="panel">
 <h2>策略績效比較</h2>
 <div class="table-wrap"><table>
 <thead><tr><th>策略</th><th>買進次數</th><th>賣出次數</th><th>賣出獲利率</th><th>實際外部投入本金</th><th>淨投資損益</th><th>投入報酬率</th><th>最大回撤</th><th>持倉比例</th><th>0050 一次買入持有報酬*</th></tr></thead>
 <tbody>{body_rows}</tbody></table></div>
-<p class="muted">* 七組策略與定期定額使用相同期間的 0050 一次買入持有基準，因此這一欄每列相同是正常的。訊號策略投入報酬率＝（已實現＋未實現損益）／外部實際補入本金；不設預留10萬上限，賣出所得循環買入不算外部新本金。定期定額則用每月外部投入累計為本金。此非年化報酬，投入時間差異應另用XIRR評估。持倉比例指有部位的交易日占比；獲利率按每次賣出50%所實現的盈虧計算，不是完整往返交易勝率；剩餘持股市值計入總報酬。訊號策略無本金預設上限，七組訊號策略每次買入10,000元、每次賣出50%現有持股；定期定額每月買入3,000元。新增 B3 與其他策略屬探索性研究假設，並非最適化結果。資料從目前來源最早日期開始；費波那契須先累積120個已完成交易日才有訊號。</p>
+<p class="muted">* 五種策略與定期定額使用相同期間的 0050 一次買入持有基準，因此這一欄每列相同是正常的。訊號策略投入報酬率＝（已實現＋未實現損益）／外部實際補入本金；不設預留10萬上限，賣出所得循環買入不算外部新本金。定期定額則用每月外部投入累計為本金。此非年化報酬，投入時間差異應另用XIRR評估。持倉比例指有部位的交易日占比；獲利率按每次賣出50%所實現的盈虧計算，不是完整往返交易勝率；剩餘持股市值計入總報酬。訊號策略無本金預設上限，五種主要策略每次買入10,000元、每次賣出50%現有持股；定期定額每月買入3,000元。A3/B4/C3/D 屬探索性研究假設，並非最適化結果。資料從目前來源最早日期開始；費波那契須先累積120個已完成交易日才有訊號。</p>
 </section>
 <section class="panel">
 <h2>0050 每月 1 日定期定額：兩種資金條件</h2>
