@@ -28,15 +28,15 @@ def generate(source=Path("output"), dest=Path("docs")):
     (dest / ".nojekyll").write_text("", encoding="utf-8")
 
     strategy_desc = (
-        '<p><strong>A｜純市場寬度</strong>：過冷後回升買進、上穿過熱門檻賣出。</p>'
+        '<p><strong>A｜純市場寬度</strong>：過冷後回升買進、上穿50%或60%分批賣出。</p>'
         '<p><strong>B｜純費波那契</strong>：價格向上收復過去 120 日費波那契支撐，'
         '隔日買進；依訊號當日固定的下一級壓力目標或支撐失效價位出場，不使用市場寬度。</p>'
         '<p><strong>C｜綜合策略</strong>：過冷回升後五日內且接近費波那契價位買進；'
-        '市場寬度上穿過熱門檻賣出。</p>'
-        '<p><strong>A2｜寬度波段</strong>：上穿40%進場；失守40%、達65%或30交易日退出。</p>'
-        '<p><strong>B2｜費波那契反彈</strong>：靠近支撐且止跌反彈買進；回落6%、支撐失效或45交易日退出。</p>'
+        '市場寬度上穿50%或60%分批賣出。</p>'
+        '<p><strong>A2｜寬度波段</strong>：上穿40%進場；失守40%、上穿50/60%或30交易日減碼。</p>'
+        '<p><strong>B2｜費波那契反彈</strong>：靠近支撐且止跌反彈買進；回落6%、支撐失效或45交易日減碼。</p>'
         '<p><strong>C2｜綜合波段</strong>：寬度上穿40%且高於費波那契50%價位買進；'
-        '寬度失守、指數跌破Fib50%或45交易日退出。</p>'
+        '上穿50/60%減碼；寬度失守、指數跌破Fib50%或45交易日再減碼。</p>'
     )
     ticker = html.escape(str(payload.get("ticker", "0050.TW")))
     config = payload["config"]
@@ -44,7 +44,8 @@ def generate(source=Path("output"), dest=Path("docs")):
     body_rows = "\n".join(
         "<tr>"
         f"<td>策略 {html.escape(str(r['strategy']))}</td>"
-        f"<td>{r['completed_trades']}</td>"
+        f"<td>{r.get('buy_orders', 0)}</td>"
+        f"<td>{r.get('sell_orders', 0)}</td>"
         f"<td>{display(r['win_rate_pct'],1,'%')}</td>"
         f"<td>{display(r['strategy_return_pct'],2,'%')}</td>"
         f"<td>{display(r['max_drawdown_pct'],2,'%')}</td>"
@@ -103,9 +104,9 @@ a{{color:#8ac4ff}}
 <section class="panel">
 <h2>策略績效比較</h2>
 <div class="table-wrap"><table>
-<thead><tr><th>策略</th><th>完成交易</th><th>勝率</th><th>策略總報酬</th><th>最大回撤</th><th>持倉比例</th><th>0050 持有報酬*</th></tr></thead>
+<thead><tr><th>策略</th><th>買進次數</th><th>賣出次數</th><th>賣出獲利率</th><th>策略總報酬</th><th>最大回撤</th><th>持倉比例</th><th>0050 持有報酬*</th></tr></thead>
 <tbody>{body_rows}</tbody></table></div>
-<p class="muted">* 相同期間的 0050 持有基準。持倉比例指有部位的交易日占比；未平倉不計入完成交易與勝率，但包含期末總報酬。六組策略屬預先指定的研究假設，並非最適化結果。資料從目前來源最早日期開始；費波那契須先累積120個已完成交易日才有訊號。</p>
+<p class="muted">* 相同期間的 0050 持有基準。持倉比例指有部位的交易日占比；獲利率按每次賣出50%所實現的盈虧計算，不是完整往返交易勝率；剩餘持股市值計入總報酬。起始資金100,000元，每次買入10,000元，每次賣出50%現有持股；六組策略屬探索性研究假設，並非最適化結果。資料從目前來源最早日期開始；費波那契須先累積120個已完成交易日才有訊號。</p>
 </section>
 <section class="panel">
 <h2>互動圖表</h2>
