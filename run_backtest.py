@@ -32,7 +32,7 @@ def run(args):
     signals=add_variant_signals(build_signals(breadth,cfg))
     signals.to_csv(output/'signal_diagnostics.csv',index_label='date')
     fig=make_subplots(rows=3,cols=1,shared_xaxes=True,row_heights=[.32,.32,.36],
-        vertical_spacing=.07,subplot_titles=['市場寬度與門檻','加權指數與動態費波那契參考線','策略資金曲線'])
+        vertical_spacing=.07,subplot_titles=['市場寬度與門檻','加權指數與動態費波那契參考線','已投入本金報酬率（不計閒置現金）'])
     fig.add_trace(go.Scatter(x=signals.index,y=signals.breadth,name='Market breadth',connectgaps=False),row=1,col=1)
     for level,label in [(args.buy,'Buy / recovery'),(args.sell,'Sell 50%'),(cfg.very_hot,'Very hot sell 50%')]:
         fig.add_hline(y=level,line_dash='dot',annotation_text=label,row=1,col=1)
@@ -52,7 +52,7 @@ def run(args):
         trades.to_csv(output/f'trades_{strategy}.csv',index=False)
         curve.to_csv(output/f'equity_{strategy}.csv',index_label='date')
         summaries.append(summary)
-        fig.add_trace(go.Scatter(x=curve.index,y=curve.equity,name=f'Strategy {strategy}'),row=3,col=1)
+        fig.add_trace(go.Scatter(x=curve.index,y=curve.invested_roi_pct,name=f'Strategy {strategy}'),row=3,col=1)
     # Run identical signal dates, cash, costs and tranches on true 00631L
     # adjusted prices (never approximate it as twice 0050's accumulated return).
     leveraged_summaries=[]
@@ -86,8 +86,9 @@ def run(args):
     dca_curve.to_csv(output/'equity_DCA.csv',index_label='date')
     summaries.append(dca_summary)
     fig.add_trace(go.Scatter(
-        x=dca_curve.index,y=dca_curve.equity,name='0050 月初定期定額 3000（同資金／含現金輔助）'
+        x=dca_curve.index,y=dca_curve.invested_roi_pct,name='0050 月初定期定額 3000（實際投入報酬）'
     ),row=3,col=1)
+    fig.update_yaxes(title_text='投入報酬率 (%)',row=3,col=1)
     fig.update_layout(title=f'市場寬度策略回測 | {args.ticker} | 資料日 {meta["snapshot_date"]}',
         template='plotly_dark',height=1080,hovermode='x unified')
     fig.write_html(output/'report.html',include_plotlyjs='cdn')
