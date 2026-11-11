@@ -8,7 +8,7 @@ def test_published_site_has_new_five_strategies_and_dca(tmp_path):
     dest=tmp_path/"docs"
     source.mkdir()
     results=[]
-    for k in (*ACTIVE_STRATEGIES,"DCA"):
+    for k in (*ACTIVE_STRATEGIES,"DCA","BH"):
         results.append({
             "strategy":k,"buy_orders":3,"sell_orders":2,
             "win_rate_pct":50.,"invested_return_pct":12.345,
@@ -16,7 +16,7 @@ def test_published_site_has_new_five_strategies_and_dca(tmp_path):
             "buy_hold_return_pct":15.6,"external_capital":20000,
             "trading_profit":2469.0,
         })
-    dca=results[-1]
+    dca=next(r for r in results if r["strategy"]=="DCA")
     dca.update({
         "total_invested":9000,"ending_market_value":11000,
         "remaining_cash":91000,"ending_equity":102000,"net_profit":2000,
@@ -24,6 +24,8 @@ def test_published_site_has_new_five_strategies_and_dca(tmp_path):
         "external_profit":2000,"external_return_on_contributions_pct":22.222,
         "external_xirr_pct":12.34
     })
+    bh=next(r for r in results if r["strategy"]=="BH")
+    bh.update({"buy_orders":1,"sell_orders":0,"external_capital":10000,"invested_return_pct":20.,"trading_profit":2000})
     meta={
         "ticker":"0050.TW","source":{"snapshot_date":"2026-11-11"},
         "config":{"buy":20,"sell":50},
@@ -37,16 +39,17 @@ def test_published_site_has_new_five_strategies_and_dca(tmp_path):
     }
     (source/"summary.json").write_text(json.dumps(meta),encoding="utf-8")
     names=["report.html","summary.csv","signal_diagnostics.csv","comparison_00631L.json"]
-    for k in (*ACTIVE_STRATEGIES,"DCA"):
+    for k in (*ACTIVE_STRATEGIES,"DCA","BH"):
         names.extend([f"trades_{k}.csv",f"equity_{k}.csv",
                       f"trades_00631L_{k}.csv",f"equity_00631L_{k}.csv"])
     for n in names:
         (source/n).write_text("fixture",encoding="utf-8")
     generate(source,dest)
     page=(dest/"index.html").read_text(encoding="utf-8")
-    assert "五種主要策略" in page
+    assert "策略績效比較" in page
+    assert "0050 與 00631L 正二" in page
     for k in ACTIVE_STRATEGIES:
-        assert f"策略 {k}" in page
+        assert k in page
     assert "策略 B2</td>" not in page
     assert "策略 B3</td>" not in page
     assert "策略 C2</td>" not in page
@@ -54,7 +57,15 @@ def test_published_site_has_new_five_strategies_and_dca(tmp_path):
     assert "定期定額" in page
     assert "實際外部投入本金" in page
     assert "12.35%" in page
+    assert "一次買入持有（NT$10,000）" in page
+    assert page.count("<td><strong>0050</strong></td>")==7
+    assert page.count("<td><strong>00631L</strong></td>")==7
+    assert "兩種資金條件" not in page
+    assert "期末現金（備註）" not in page
+    assert "0050 一次買入持有報酬*" not in page
     assert "XIRR" in page
     assert (dest/"trades_B4.csv").exists()
+    assert (dest/"trades_BH.csv").exists()
+    assert (dest/"equity_00631L_BH.csv").exists()
     assert (dest/"equity_00631L_C3.csv").exists()
     assert (dest/".nojekyll").exists()
