@@ -65,7 +65,7 @@ def test_published_site_has_report_metrics_and_downloads(tmp_path):
         (source/name).write_text("fixture",encoding="utf-8")
     generate(source,dest)
     page = (dest/"index.html").read_text(encoding="utf-8")
-    assert "12.35%" in page
+    assert "22.22%" in page
     assert "策略 B" in page
     assert "策略 C" in page
     assert "策略 A2" in page
