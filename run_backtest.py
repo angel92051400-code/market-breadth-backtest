@@ -19,6 +19,13 @@ def run(args):
     start=(breadth.index.min()-timedelta(days=7)).date().isoformat()
     end=(breadth.index.max()+timedelta(days=7)).date().isoformat()
     prices=download_etf(cache,start,end,ticker=args.ticker,refresh=args.refresh_data)
+    leveraged_prices=download_etf(cache,start,end,ticker="00631L.TW",refresh=args.refresh_data)
+    # Exact matched dates for both assets so all timing comparisons are fair.
+    common=signals_dates = breadth.index.intersection(prices.index).intersection(leveraged_prices.index)
+    if len(common) < 120:
+        raise RuntimeError("0050 / 00631L common trading history shorter than 120 sessions")
+    prices=prices.loc[common]
+    leveraged_prices=leveraged_prices.loc[common]
     cfg=Config(buy=args.buy,sell=args.sell,buy_amount=args.buy_amount,lookback=args.lookback,
         fib_tolerance=args.tolerance,confirm_window=args.confirm_window,
         buy_fee=args.buy_fee,sell_fee=args.sell_fee,sell_tax=args.sell_tax)
@@ -33,7 +40,8 @@ def run(args):
     for key,name,color in [('fib_382','Fib 38.2%','#f1cb62'),('fib_500','Fib 50%','#e09d58'),('fib_618','Fib 61.8%','#a784ef')]:
         fig.add_trace(go.Scatter(x=signals.index,y=signals[key],name=name,line=dict(color=color,width=1,dash='dot'),connectgaps=False),row=2,col=1)
     for strategy,symbol,color in [('A','triangle-up','#ef7070'),('B','diamond','#49beee'),('C','star','#69d5a7'),
-                                  ('A2','triangle-up-open','#e97e9e'),('B2','diamond-open','#74c6ef'),('C2','star-open','#82dfaf')]:
+                                  ('A2','triangle-up-open','#e97e9e'),('B2','diamond-open','#74c6ef'),('C2','star-open','#82dfaf'),
+                                  ('B3','circle-open','#fbbf77')]:
         entries=signals[signals['entry_'+strategy]]
         if len(entries):
             fig.add_trace(go.Scatter(x=entries.index,y=entries.taiex_close,mode='markers',
@@ -45,12 +53,34 @@ def run(args):
         curve.to_csv(output/f'equity_{strategy}.csv',index_label='date')
         summaries.append(summary)
         fig.add_trace(go.Scatter(x=curve.index,y=curve.equity,name=f'Strategy {strategy}'),row=3,col=1)
+    # Run identical signal dates, cash, costs and tranches on true 00631L
+    # adjusted prices (never approximate it as twice 0050's accumulated return).
+    leveraged_summaries=[]
+    for strategy in ('A','B','C',*VARIANTS):
+        lev_ledger,lev_curve,lev_summary=evaluate_portfolio(signals,leveraged_prices,cfg,strategy)
+        lev_ledger.to_csv(output/f'trades_00631L_{strategy}.csv',index=False)
+        lev_curve.to_csv(output/f'equity_00631L_{strategy}.csv',index_label='date')
+        leveraged_summaries.append(lev_summary)
+    lev_dca_ledger,lev_dca_curve,lev_dca=evaluate_monthly_dca(leveraged_prices,cfg,monthly_amount=args.dca_amount)
+    lev_dca_ledger.to_csv(output/'trades_00631L_DCA.csv',index=False)
+    lev_dca_curve.to_csv(output/'equity_00631L_DCA.csv',index_label='date')
+    leveraged_summaries.append(lev_dca)
+    # Re-use same matched day horizon for fair paired comparison.
+    (output/'comparison_00631L.json').write_text(json.dumps({
+        'ticker':'00631L.TW',
+        'risk_note':'Daily 2x Taiwan 50 index target; path-dependent, not twice multi-day 0050 return.',
+        'first_date':common.min().strftime('%Y-%m-%d'),
+        'last_date':common.max().strftime('%Y-%m-%d'),
+        'sample_days':len(common),
+        'results':leveraged_summaries,
+    },ensure_ascii=False,indent=2,default=str),encoding='utf-8')
     # Fair comparison: DCA is funded by the SAME initial NT$100,000 cash
     # as every timed strategy. Its monthly purchases are not extra deposits.
     aligned_etf = prices.loc[prices.index.intersection(signals.index)].sort_index()
     dca_ledger,dca_curve,dca_summary=evaluate_monthly_dca(
         aligned_etf,cfg,monthly_amount=args.dca_amount)
     # Common buy/hold is intentionally the same reference across all rows.
+    lev_dca['buy_hold_return_pct']=leveraged_summaries[0]['buy_hold_return_pct']
     dca_summary['buy_hold_return_pct'] = summaries[0]['buy_hold_return_pct']
     dca_ledger.to_csv(output/'trades_DCA.csv',index=False)
     dca_curve.to_csv(output/'equity_DCA.csv',index_label='date')
@@ -76,8 +106,16 @@ def run(args):
             'Completed trades and win rate count partial SELL events, not full round trips. Portfolio return uses total equity and idle cash.',
             '0050 buy/hold return is the SAME common market benchmark for all strategies; equal values are intentional.',
             'DCA prefunded benchmark uses initial 100000 in cash and invests 3000 once per calendar month on first ETF trading day. Costs and cash included.',
-            'Contributions-only DCA assumes NEW 3000 monthly external funds; contribution return/XIRR are not directly comparable with 100000 initial capital strategy returns.'],
+            'Contributions-only DCA assumes NEW 3000 monthly external funds; contribution return/XIRR are not directly comparable with 100000 initial capital strategy returns.',
+            '00631L targets 2x Taiwan 50 DAILY, subject to daily compounding, leverage and trading qualification; do not infer long-run return as twice 0050.',
+            '0050 and 00631L are compared over their exact shared trading-session intersection.'],
         'strategies':{**NAMES,'DCA':'每月首個交易日投入3000元0050；同初始資金10萬元，另計外部現金流績效'},
+        'leveraged_comparison':{
+            'ticker':'00631L.TW',
+            'matched_dates':len(common),
+            'first_date':common.min().strftime('%Y-%m-%d'),
+            'last_date':common.max().strftime('%Y-%m-%d'),
+            'results':leveraged_summaries},
         'results':summaries,
         'comparison_note':'各策略同初始10萬元；定期定額每月從相同10萬元現金支付3000。外部每月另外存3000元的常見定期定額另列投入本金、期末市值、投入報酬率及XIRR，不可將外部投入績效與固定10萬元資產報酬直接比較。'}
     (output/'summary.json').write_text(json.dumps(metadata,ensure_ascii=False,indent=2,default=str),encoding='utf-8')
