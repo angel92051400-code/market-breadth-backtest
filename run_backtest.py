@@ -21,20 +21,28 @@ def run(args):
         buy_fee=args.buy_fee,sell_fee=args.sell_fee,sell_tax=args.sell_tax)
     signals=build_signals(breadth,cfg)
     signals.to_csv(output/'signal_diagnostics.csv',index_label='date')
-    fig=make_subplots(rows=2,cols=1,shared_xaxes=True,row_heights=[.55,.45],
-        vertical_spacing=.1,subplot_titles=['市場寬度（有效樣本）與交易門檻','策略資金曲線'])
+    fig=make_subplots(rows=3,cols=1,shared_xaxes=True,row_heights=[.32,.32,.36],
+        vertical_spacing=.07,subplot_titles=['市場寬度與門檻','加權指數與動態費波那契參考線','策略資金曲線'])
     fig.add_trace(go.Scatter(x=signals.index,y=signals.breadth,name='Market breadth',connectgaps=False),row=1,col=1)
     for level,label in [(args.buy,'Buy / recovery'),(args.sell,'Sell')]:
         fig.add_hline(y=level,line_dash='dot',annotation_text=label,row=1,col=1)
+    fig.add_trace(go.Scatter(x=signals.index,y=signals.taiex_close,name='TAIEX',line=dict(color='#d6dce9')),row=2,col=1)
+    for key,name,color in [('fib_382','Fib 38.2%','#f1cb62'),('fib_500','Fib 50%','#e09d58'),('fib_618','Fib 61.8%','#a784ef')]:
+        fig.add_trace(go.Scatter(x=signals.index,y=signals[key],name=name,line=dict(color=color,width=1,dash='dot'),connectgaps=False),row=2,col=1)
+    for strategy,symbol,color in [('A','triangle-up','#ef7070'),('B','diamond','#49beee'),('C','star','#69d5a7')]:
+        entries=signals[signals['entry_'+strategy]]
+        if len(entries):
+            fig.add_trace(go.Scatter(x=entries.index,y=entries.taiex_close,mode='markers',
+                marker=dict(symbol=symbol,size=9,color=color),name=f'{strategy} entry signal'),row=2,col=1)
     summaries=[]
-    for strategy in ('A','B'):
+    for strategy in ('A','B','C'):
         trades,curve,summary=evaluate(signals,prices,cfg,strategy)
         trades.to_csv(output/f'trades_{strategy}.csv',index=False)
         curve.to_csv(output/f'equity_{strategy}.csv',index_label='date')
         summaries.append(summary)
-        fig.add_trace(go.Scatter(x=curve.index,y=curve.equity,name=f'Strategy {strategy}'),row=2,col=1)
+        fig.add_trace(go.Scatter(x=curve.index,y=curve.equity,name=f'Strategy {strategy}'),row=3,col=1)
     fig.update_layout(title=f'市場寬度策略回測 | {args.ticker} | 資料日 {meta["snapshot_date"]}',
-        template='plotly_dark',height=800,hovermode='x unified')
+        template='plotly_dark',height=1080,hovermode='x unified')
     fig.write_html(output/'report.html',include_plotlyjs='cdn')
     pd.DataFrame([{k:v for k,v in s.items() if k!='open_trade'} for s in summaries]).to_csv(output/'summary.csv',index=False)
     metadata={'source':meta,'ticker':args.ticker,'config':vars(cfg),
@@ -42,7 +50,8 @@ def run(args):
             'Historical top-640 universe uses present-day constituent list (survivorship and look-ahead bias).',
             'Below 95% quote coverage breadth is missing; signals must not use interpolation.',
             'Adjusted Yahoo OHLC is a total-return proxy, not an executable raw price.',
-            'All Fibonacci levels use trailing highs/lows through signal close; next-open trade.',
+            'Fibonacci levels use only prior completed sessions; next-open trade.',
+            'B is pure Fibonacci and never uses market breadth. C combines breadth with Fibonacci and breadth-based exits.',
             'Exploratory analysis, not a verified profitable strategy.'],
         'results':summaries}
     (output/'summary.json').write_text(json.dumps(metadata,ensure_ascii=False,indent=2,default=str),encoding='utf-8')
