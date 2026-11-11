@@ -13,16 +13,6 @@ on:
         default: '50'
         required: true
         type: string
-  # One-time deployment run for the new six-strategy report.
-  # This push trigger will be removed after the generated report is verified.
-  push:
-    branches: [main]
-    paths:
-      - experimental_strategies.py
-      - run_backtest.py
-      - publish_report.py
-      - .github/workflows/backtest.yml
-
 permissions:
   contents: write
 
