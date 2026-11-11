@@ -18,7 +18,7 @@ def generate(source=Path("output"), dest=Path("docs")):
     rows = payload["results"]
     dest.mkdir(parents=True, exist_ok=True)
     files = ["report.html", "summary.json", "summary.csv", "signal_diagnostics.csv"]
-    for strategy in ("A", "B", "C", "A2", "B2", "C2"):
+    for strategy in ("A", "B", "C", "A2", "B2", "C2", "DCA"):
         files.extend((f"trades_{strategy}.csv", f"equity_{strategy}.csv"))
     for filename in files:
         file = source / filename
@@ -38,21 +38,53 @@ def generate(source=Path("output"), dest=Path("docs")):
         '<p><strong>C2｜綜合波段</strong>：寬度上穿40%且高於費波那契50%價位買進；'
         '上穿50/60%減碼；寬度失守、指數跌破Fib50%或45交易日再減碼。</p>'
     )
+    dca = next((r for r in rows if r['strategy'] == 'DCA'), None)
+    if dca is None:
+        raise ValueError("Missing monthly DCA summary")
+    strategy_desc += (
+        '<p><strong>0050 月初定期定額</strong>：每個月 1 日（休市順延下一個交易日）'
+        '買進3,000元。公平比較版本使用與六組策略相同的初始10萬元，從現金扣除；'
+        '一般定期定額則每月另存3,000元，獨立顯示累計投入與XIRR。</p>'
+    )
     ticker = html.escape(str(payload.get("ticker", "0050.TW")))
     config = payload["config"]
     snapshot = html.escape(str(payload["source"].get("snapshot_date", "—")))
     body_rows = "\n".join(
         "<tr>"
-        f"<td>策略 {html.escape(str(r['strategy']))}</td>"
+        f"<td>{'0050 月初定期定額' if r['strategy']=='DCA' else '策略 ' + html.escape(str(r['strategy']))}</td>"
         f"<td>{r.get('buy_orders', 0)}</td>"
         f"<td>{r.get('sell_orders', 0)}</td>"
-        f"<td>{display(r['win_rate_pct'],1,'%')}</td>"
+        f"<td>{display(r.get('win_rate_pct'),1,'%')}</td>"
         f"<td>{display(r['strategy_return_pct'],2,'%')}</td>"
         f"<td>{display(r['max_drawdown_pct'],2,'%')}</td>"
         f"<td>{display(r.get('exposure_pct'),1,'%')}</td>"
-        f"<td>{display(r['buy_hold_return_pct'],2,'%')}</td>"
+        f"<td>{display(r.get('buy_hold_return_pct'),2,'%')}</td>"
         "</tr>"
         for r in rows
+    )
+    dca_details = (
+        '<div class="table-wrap"><table>'
+        '<thead><tr><th>定期定額版本</th><th>累計投入</th><th>期末持股市值</th>'
+        '<th>期末現金</th><th>期末總資產</th><th>獲利</th><th>報酬率</th></tr></thead>'
+        '<tbody><tr><td>同資金：起始10萬元，每月扣3,000</td>'
+        f'<td>NT$ {display(dca["total_invested"],0)}</td>'
+        f'<td>NT$ {display(dca["ending_market_value"],0)}</td>'
+        f'<td>NT$ {display(dca["remaining_cash"],0)}</td>'
+        f'<td>NT$ {display(dca["ending_equity"],0)}</td>'
+        f'<td>NT$ {display(dca["net_profit"],0)}</td>'
+        f'<td>{display(dca["strategy_return_pct"],2,"%")}</td></tr>'
+        '<tr><td>每月外部新存3,000</td>'
+        f'<td>NT$ {display(dca["external_contributions"],0)}</td>'
+        f'<td>NT$ {display(dca["external_market_value"],0)}</td>'
+        '<td>NT$ 0</td>'
+        f'<td>NT$ {display(dca["external_market_value"],0)}</td>'
+        f'<td>NT$ {display(dca["external_profit"],0)}</td>'
+        f'<td>{display(dca["external_return_on_contributions_pct"],2,"%")}</td></tr>'
+        '</tbody></table></div>'
+        f'<p>外部逐月投入的年化資金加權報酬（XIRR）：'
+        f'<strong>{display(dca["external_xirr_pct"],2,"%")}</strong>。'
+        '外部加碼的投入報酬率與六組策略的10萬元初始資產報酬率並非同一指標。'
+        '兩種版本都包含買進手續費；股息透過調整後價格近似再投入，允許小數股。</p>'
     )
     links = "".join(
         f'<a href="{html.escape(name)}" download>{html.escape(name)}</a>'
@@ -98,15 +130,19 @@ a{{color:#8ac4ff}}
 目前資料使用當前前 640 大股票回推，存在存活者偏差。</p>
 </section>
 <section class="panel">
-<h2>六組策略規則（原版 A/B/C＋新增 A2/B2/C2）</h2>
+<h2>六組策略＋0050 定期定額基準</h2>
 {strategy_desc}
 </section>
 <section class="panel">
 <h2>策略績效比較</h2>
 <div class="table-wrap"><table>
-<thead><tr><th>策略</th><th>買進次數</th><th>賣出次數</th><th>賣出獲利率</th><th>策略總報酬</th><th>最大回撤</th><th>持倉比例</th><th>0050 持有報酬*</th></tr></thead>
+<thead><tr><th>策略</th><th>買進次數</th><th>賣出次數</th><th>賣出獲利率</th><th>策略總報酬</th><th>最大回撤</th><th>持倉比例</th><th>0050 一次買入持有報酬*</th></tr></thead>
 <tbody>{body_rows}</tbody></table></div>
-<p class="muted">* 相同期間的 0050 持有基準。持倉比例指有部位的交易日占比；獲利率按每次賣出50%所實現的盈虧計算，不是完整往返交易勝率；剩餘持股市值計入總報酬。起始資金100,000元，每次買入10,000元，每次賣出50%現有持股；六組策略屬探索性研究假設，並非最適化結果。資料從目前來源最早日期開始；費波那契須先累積120個已完成交易日才有訊號。</p>
+<p class="muted">* 六組策略與定期定額使用相同期間的 0050 一次買入持有基準，因此這一欄每列相同是正常的。持倉比例指有部位的交易日占比；獲利率按每次賣出50%所實現的盈虧計算，不是完整往返交易勝率；剩餘持股市值計入總報酬。起始資金100,000元，六組訊號策略每次買入10,000元、每次賣出50%現有持股；定期定額每月買入3,000元。六組策略屬探索性研究假設，並非最適化結果。資料從目前來源最早日期開始；費波那契須先累積120個已完成交易日才有訊號。</p>
+</section>
+<section class="panel">
+<h2>0050 每月 1 日定期定額：兩種資金條件</h2>
+{dca_details}
 </section>
 <section class="panel">
 <h2>互動圖表</h2>
