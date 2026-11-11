@@ -13,12 +13,6 @@ on:
         default: '50'
         required: true
         type: string
-  # One-time refresh of comparison table, remove immediately after deployment.
-  push:
-    branches: [main]
-    paths:
-      - publish_report.py
-
 permissions:
   contents: write
 
