@@ -21,6 +21,7 @@ on:
       - experimental_strategies.py
       - run_backtest.py
       - publish_report.py
+      - .github/workflows/backtest.yml
 
 permissions:
   contents: write
@@ -51,7 +52,7 @@ jobs:
         if: steps.source.outputs.changed == 'true'
         env:
           BUY: ${{ inputs.buy || '20' }}
-          SELL: ${{ inputs.sell || '70' }}
+          SELL: ${{ inputs.sell || '50' }}
         run: |
           python run_backtest.py --buy "$BUY" --sell "$SELL"
       - name: Build browsable static website
