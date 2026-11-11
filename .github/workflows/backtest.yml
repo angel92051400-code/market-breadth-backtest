@@ -24,6 +24,7 @@ on:
       - run_backtest.py
       - backtest.py
       - data_sources.py
+      - check_source.py
       - publish_report.py
 
 permissions:
