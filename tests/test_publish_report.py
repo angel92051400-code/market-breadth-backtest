@@ -39,7 +39,7 @@ def test_published_site_has_new_five_strategies_and_dca(tmp_path):
     }
     (source/"summary.json").write_text(json.dumps(meta),encoding="utf-8")
     names=["report.html","summary.csv","signal_diagnostics.csv","comparison_00631L.json"]
-    for k in (*ACTIVE_STRATEGIES,"DCA"):
+    for k in (*ACTIVE_STRATEGIES,"DCA","BH"):
         names.extend([f"trades_{k}.csv",f"equity_{k}.csv",
                       f"trades_00631L_{k}.csv",f"equity_00631L_{k}.csv"])
     for n in names:
