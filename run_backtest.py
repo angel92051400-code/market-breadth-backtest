@@ -32,7 +32,7 @@ def run(args):
     signals=add_variant_signals(build_signals(breadth,cfg))
     signals.to_csv(output/'signal_diagnostics.csv',index_label='date')
     fig=make_subplots(rows=3,cols=1,shared_xaxes=True,row_heights=[.32,.32,.36],
-        vertical_spacing=.07,subplot_titles=['市場寬度與門檻','加權指數與動態費波那契參考線','已投入本金報酬率（不計閒置現金）'])
+        vertical_spacing=.07,subplot_titles=['市場寬度與門檻','加權指數與動態費波那契參考線','實際外部本金報酬率（無固定資金上限）'])
     fig.add_trace(go.Scatter(x=signals.index,y=signals.breadth,name='Market breadth',connectgaps=False),row=1,col=1)
     for level,label in [(args.buy,'Buy / recovery'),(args.sell,'Sell 50%'),(cfg.very_hot,'Very hot sell 50%')]:
         fig.add_hline(y=level,line_dash='dot',annotation_text=label,row=1,col=1)
@@ -52,7 +52,7 @@ def run(args):
         trades.to_csv(output/f'trades_{strategy}.csv',index=False)
         curve.to_csv(output/f'equity_{strategy}.csv',index_label='date')
         summaries.append(summary)
-        fig.add_trace(go.Scatter(x=curve.index,y=curve.invested_roi_pct,name=f'Strategy {strategy}'),row=3,col=1)
+        fig.add_trace(go.Scatter(x=curve.index,y=curve.capital_roi_pct,name=f'Strategy {strategy}'),row=3,col=1)
     # Run identical signal dates, cash, costs and tranches on true 00631L
     # adjusted prices (never approximate it as twice 0050's accumulated return).
     leveraged_summaries=[]
@@ -88,7 +88,7 @@ def run(args):
     fig.add_trace(go.Scatter(
         x=dca_curve.index,y=dca_curve.invested_roi_pct,name='0050 月初定期定額 3000（實際投入報酬）'
     ),row=3,col=1)
-    fig.update_yaxes(title_text='投入報酬率 (%)',row=3,col=1)
+    fig.update_yaxes(title_text='外部本金報酬率 (%)',row=3,col=1)
     fig.update_layout(title=f'市場寬度策略回測 | {args.ticker} | 資料日 {meta["snapshot_date"]}',
         template='plotly_dark',height=1080,hovermode='x unified')
     fig.write_html(output/'report.html',include_plotlyjs='cdn')
@@ -103,15 +103,15 @@ def run(args):
             'Exploratory analysis, not a verified profitable strategy.',
             'A2/B2/C2 are predeclared alternative hypotheses, not optimized on test data.',
             'Signal history begins with the oldest available dashboard day; Fibonacci requires a 120-session warmup.',
-            'Orders: T+1 next ETF open, buy fixed 10000 TWD with available cash, sell 50% of then-held shares per exit event.',
-            'Completed trades and win rate count partial SELL events, not full round trips. Portfolio return uses total equity and idle cash.',
+            'Orders: T+1 next ETF open, buy 10000 TWD on every signal, inject external shortfall without cap, sell 50% on each distinct exit event.',
+            'Completed trades and win rate count partial SELL events; strategy capital ROI excludes unused cash and counts only actually deposited funds.',
             '0050 buy/hold return is the SAME common market benchmark for all strategies; equal values are intentional.',
             'DCA prefunded benchmark uses initial 100000 in cash and invests 3000 once per calendar month on first ETF trading day. Costs and cash included.',
             'Contributions-only DCA assumes NEW 3000 monthly external funds; contribution return/XIRR are not directly comparable with 100000 initial capital strategy returns.',
             '00631L targets 2x Taiwan 50 DAILY, subject to daily compounding, leverage and trading qualification; do not infer long-run return as twice 0050.',
             '0050 and 00631L are compared over their exact shared trading-session intersection.',
-            'Primary ROI is realized net sale proceeds plus last market value, minus gross buys including fees, divided by gross buys. Idle cash EXCLUDED.',
-            'Gross buy totals can count recycled money multiple times. Report XIRR separately to compare strategies with different cash-flow timing.'],
+            'Strategy ROI uses only actual external deposits to fund buys: (realized plus unrealized profit) / deposits. No initial 100000 cap.',
+            'Gross buy totals count recycled sale proceeds; external deposits do not. Always buy 10000 per valid signal, injecting shortfalls and separately reporting XIRR.'],
         'strategies':{**NAMES,'DCA':'每月首個交易日投入3000元0050；同初始資金10萬元，另計外部現金流績效'},
         'leveraged_comparison':{
             'ticker':'00631L.TW',
@@ -120,7 +120,7 @@ def run(args):
             'last_date':common.max().strftime('%Y-%m-%d'),
             'results':leveraged_summaries},
         'results':summaries,
-        'comparison_note':'主表採實際投入報酬率=(累計賣出淨所得+期末持股市值-累計買入含費用金額)/累計買入含費用金額。未投入現金不計入；資金反覆買賣會重複計入累計投入，屬投入週轉報酬，不是XIRR。帳戶總報酬另外保留作輔助。定期定額每月投入3000；外部現金流另列XIRR。'}
+        'comparison_note':'策略本金採買進時現金不足的外部補款累計，不設10萬上限；已實現＋未實現獲利除以實際外部補款。賣出所得再用於買進不算新本金，另列累計交易額及年化XIRR。定期定額外部本金為每月3000。'}
     (output/'summary.json').write_text(json.dumps(metadata,ensure_ascii=False,indent=2,default=str),encoding='utf-8')
     print('===== Backtest results =====')
     for s in summaries:

@@ -74,7 +74,7 @@ def test_published_site_has_report_metrics_and_downloads(tmp_path):
     assert "策略 B3" in page
     assert "00631L" in page
     assert "投入報酬率" in page
-    assert "累計買進本金" in page
+    assert "實際外部投入本金" in page
     assert "25.00%" in page
     assert (dest/"comparison_00631L.json").exists()
     assert (dest/"trades_B2.csv").exists()
