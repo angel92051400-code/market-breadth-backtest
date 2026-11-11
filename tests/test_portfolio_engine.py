@@ -7,15 +7,15 @@ from portfolio_engine import evaluate_portfolio
 
 
 def data():
-    idx = pd.bdate_range("2026-01-01",periods=17)
+    idx = pd.bdate_range("2026-01-01",periods=18)
     # Three breadth oversold recoveries and hot crosses.
-    breadth = [15,21,40,55,65,30,15,22,41,52,62,35,15,22,42,55,65]
+    breadth = [15,21,40,55,65,30,15,22,41,52,62,35,15,22,42,55,65,45]
     prices = pd.DataFrame({
-        "Open": [100]*17, "Close": [100]*17,
+        "Open": [100]*18, "Close": [100]*18,
     },index=idx)
     signals = pd.DataFrame({
         "breadth":breadth,
-        "taiex_close":[100]*17,"fib_500":[95]*17,
+        "taiex_close":[100]*18,"fib_500":[95]*17,
         "fib_382":[110]*17,"fib_618":[90]*17,
     },index=idx)
     signals["entry_A"] = (signals.breadth.shift(1)<=20)&(signals.breadth>20)
@@ -55,7 +55,7 @@ def test_fixed_amount_buys_and_half_sells_repeatedly():
 
 def test_50_and_60_hit_same_day_sell_sequential_halves():
     signals,prices=data()
-    signals["breadth"]=[15,21,65]+[45]*14
+    signals["breadth"]=[15,21,65]+[45]*15
     cfg=Config()
     l,c,st=evaluate_portfolio(signals,prices,cfg,"A")
     sells=l[l.action=="SELL"]
@@ -92,7 +92,7 @@ def test_realized_profit_and_cash_ledger_reconciles():
 def test_fib_B_independent_of_breadth():
     signals,prices=data()
     signals["breadth"]=np.nan
-    signals["entry_B"].iloc[1:]=False
+    signals.loc[signals.index[1:],"entry_B"]=False
     signals.loc[signals.index[1],"entry_B"]=True
     signals.loc[signals.index[1],"fib_entry_support"]=95.
     signals.loc[signals.index[1],"fib_entry_target"]=104.
