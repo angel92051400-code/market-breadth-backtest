@@ -47,11 +47,11 @@ def generate(source=Path("output"), dest=Path("docs")):
         raise ValueError("Missing true-price 00631L comparison")
     lever_rows=leveraged["results"]
     paired={r["strategy"]:r for r in lever_rows}
-    combined_rows="\\n".join(
+    combined_rows="\n".join(
         "<tr>"
         f"<td>{html.escape(str(r['strategy']))}</td>"
-        f"<td>{display(r['strategy_return_pct'],2,'%')}</td>"
-        f"<td>{display(paired[r['strategy']]['strategy_return_pct'],2,'%')}</td>"
+        f"<td>{display(r.get('invested_return_pct'),2,'%')}</td>"
+        f"<td>{display(paired[r['strategy']].get('invested_return_pct'),2,'%')}</td>"
         f"<td>{display(r['max_drawdown_pct'],2,'%')}</td>"
         f"<td>{display(paired[r['strategy']]['max_drawdown_pct'],2,'%')}</td>"
         f"<td>{int(r.get('buy_orders',0))} / {int(paired[r['strategy']].get('buy_orders',0))}</td>"
@@ -59,10 +59,10 @@ def generate(source=Path("output"), dest=Path("docs")):
     )
     leveraged_details=(
         '<p>兩檔標的使用相同市場寬度／加權指數訊號、共同交易日期、'
-        '初始資金10萬元、每次買進1萬元與賣出當時持股50%。'
+        '起始可用資金10萬元、訊號策略每次買進1萬元並賣出持股50%。閒置現金不計入投入報酬率。'
         '00631L是真實調整後ETF價格，不是把0050乘以二。</p>'
         '<div class="table-wrap"><table><thead><tr><th>策略</th>'
-        '<th>0050總報酬</th><th>00631L總報酬</th><th>0050最大回撤</th>'
+        '<th>0050投入報酬</th><th>00631L投入報酬</th><th>0050最大回撤</th>'
         '<th>00631L最大回撤</th><th>買入筆數 0050 / 00631L</th>'
         '</tr></thead><tbody>'+combined_rows+'</tbody></table></div>'
         f'<p>共同交易區間：{html.escape(leveraged["first_date"])}～'
@@ -97,14 +97,14 @@ def generate(source=Path("output"), dest=Path("docs")):
     dca_details = (
         '<div class="table-wrap"><table>'
         '<thead><tr><th>定期定額版本</th><th>累計投入</th><th>期末持股市值</th>'
-        '<th>期末現金</th><th>期末總資產</th><th>獲利</th><th>報酬率</th></tr></thead>'
+        '<th>期末現金（備註）</th><th>期末總資產（備註）</th><th>淨投資損益</th><th>投入報酬率</th></tr></thead>'
         '<tbody><tr><td>同資金：起始10萬元，每月扣3,000</td>'
         f'<td>NT$ {display(dca["total_invested"],0)}</td>'
         f'<td>NT$ {display(dca["ending_market_value"],0)}</td>'
         f'<td>NT$ {display(dca["remaining_cash"],0)}</td>'
         f'<td>NT$ {display(dca["ending_equity"],0)}</td>'
         f'<td>NT$ {display(dca["net_profit"],0)}</td>'
-        f'<td>{display(dca["strategy_return_pct"],2,"%")}</td></tr>'
+        f'<td>{display(dca["invested_return_pct"],2,"%")}</td></tr>'
         '<tr><td>每月外部新存3,000</td>'
         f'<td>NT$ {display(dca["external_contributions"],0)}</td>'
         f'<td>NT$ {display(dca["external_market_value"],0)}</td>'
@@ -115,7 +115,7 @@ def generate(source=Path("output"), dest=Path("docs")):
         '</tbody></table></div>'
         f'<p>外部逐月投入的年化資金加權報酬（XIRR）：'
         f'<strong>{display(dca["external_xirr_pct"],2,"%")}</strong>。'
-        '外部加碼的投入報酬率與六組策略的10萬元初始資產報酬率並非同一指標。'
+        '外部定期定額投入與反覆買賣訊號策略的投入時點不同；建議另外比較XIRR。'
         '兩種版本都包含買進手續費；股息透過調整後價格近似再投入，允許小數股。</p>'
     )
     links = "".join(
@@ -168,9 +168,9 @@ a{{color:#8ac4ff}}
 <section class="panel">
 <h2>策略績效比較</h2>
 <div class="table-wrap"><table>
-<thead><tr><th>策略</th><th>買進次數</th><th>賣出次數</th><th>賣出獲利率</th><th>策略總報酬</th><th>最大回撤</th><th>持倉比例</th><th>0050 一次買入持有報酬*</th></tr></thead>
+<thead><tr><th>策略</th><th>買進次數</th><th>賣出次數</th><th>賣出獲利率</th><th>累計買進本金</th><th>淨投資損益</th><th>投入報酬率</th><th>最大回撤</th><th>持倉比例</th><th>0050 一次買入持有報酬*</th></tr></thead>
 <tbody>{body_rows}</tbody></table></div>
-<p class="muted">* 七組策略與定期定額使用相同期間的 0050 一次買入持有基準，因此這一欄每列相同是正常的。持倉比例指有部位的交易日占比；獲利率按每次賣出50%所實現的盈虧計算，不是完整往返交易勝率；剩餘持股市值計入總報酬。起始資金100,000元，七組訊號策略每次買入10,000元、每次賣出50%現有持股；定期定額每月買入3,000元。新增 B3 與其他策略屬探索性研究假設，並非最適化結果。資料從目前來源最早日期開始；費波那契須先累積120個已完成交易日才有訊號。</p>
+<p class="muted">* 七組策略與定期定額使用相同期間的 0050 一次買入持有基準，因此這一欄每列相同是正常的。投入報酬率＝（累計賣出淨所得＋期末持股市值－累計買進成本）／累計買進成本，完全不計閒置現金。若賣出所得再次買進，累計買進成本會重複計入投入本金，因此這是投入週轉報酬，不是資金加權年化報酬 XIRR。持倉比例指有部位的交易日占比；獲利率按每次賣出50%所實現的盈虧計算，不是完整往返交易勝率；剩餘持股市值計入總報酬。起始可用資金100,000元（僅作現金限制，不直接計入投入報酬），七組訊號策略每次買入10,000元、每次賣出50%現有持股；定期定額每月買入3,000元。新增 B3 與其他策略屬探索性研究假設，並非最適化結果。資料從目前來源最早日期開始；費波那契須先累積120個已完成交易日才有訊號。</p>
 </section>
 <section class="panel">
 <h2>0050 每月 1 日定期定額：兩種資金條件</h2>
