@@ -13,7 +13,7 @@ from __future__ import annotations
 import numpy as np
 import pandas as pd
 
-STRATEGIES = ("A", "B", "C", "A2", "B2", "C2")
+STRATEGIES = ("A", "B", "C", "A2", "B2", "C2", "B3")
 NAMES = {
     "A": "原版：寬度20%反彈買進，50/60%分兩階段減碼",
     "B": "原版：費波那契收復支撐買進，達固定目標或跌破支撐減碼",
@@ -21,6 +21,7 @@ NAMES = {
     "A2": "寬度40%波段買進，50/60%減碼，失守40%或30日風控",
     "B2": "費波那契反彈買進，6%追蹤回撤、失守支撐或45日減碼",
     "C2": "寬度40%＋Fib50%買進，50/60%減碼，跌破條件或45日風控",
+    "B3": "寬鬆費波那契回升（距回撤位±6%），1.414倍延伸目標或風控半數賣出",
 }
 
 
@@ -71,6 +72,14 @@ def _new_orders(s, i, strategy, cfg, lots_active, age, fib_state):
                 exits.append("fib_target")
             elif stop is not None and _cross_down(index, old_index, stop):
                 exits.append("fib_stop")
+        elif strategy == "B3":
+            target, stop = fib_state["target"], fib_state["stop"]
+            if target is not None and _cross_up(index, old_index, target):
+                exits.append("fib_extension_1414")
+            elif stop is not None and _cross_down(index, old_index, stop):
+                exits.append("fib_support_failure_6pct")
+            elif age == 60:
+                exits.append("max_hold_60")
         elif strategy == "B2":
             stop = fib_state["support"]
             trail = fib_state["previous_high"]
@@ -89,6 +98,12 @@ def _new_orders(s, i, strategy, cfg, lots_active, age, fib_state):
             if pd.notna(row["fib_entry_support"]) and pd.notna(row["fib_entry_target"]):
                 support = float(row["fib_entry_support"])
                 target = float(row["fib_entry_target"])
+            else:
+                return []
+        if strategy == "B3":
+            if pd.notna(row["b3_support"]) and pd.notna(row["b3_target"]):
+                support = float(row["b3_support"])
+                target = float(row["b3_target"])
             else:
                 return []
         if strategy == "B2":
@@ -118,6 +133,7 @@ def evaluate_portfolio(signals: pd.DataFrame, prices: pd.DataFrame, cfg, strateg
     pending = []
     rows, curve_rows = [], []
     buys, sells, skipped_buys = 0, 0, 0
+    accumulated_buys = accumulated_sells = 0.0
     first_entry_idx = None
     first_entry_date = None
     fib_state = {"target":None, "stop":None, "support":None, "previous_high":None}
@@ -136,6 +152,7 @@ def evaluate_portfolio(signals: pd.DataFrame, prices: pd.DataFrame, cfg, strateg
                     cash -= amount
                     shares += qty
                     cost_basis += amount
+                    accumulated_buys += amount
                     buys += 1
                     if first_entry_idx is None:
                         first_entry_idx = i
@@ -143,6 +160,9 @@ def evaluate_portfolio(signals: pd.DataFrame, prices: pd.DataFrame, cfg, strateg
                     if strategy == "B":
                         fib_state["target"] = target
                         fib_state["stop"] = support * (1-cfg.fib_tolerance)
+                    if strategy == "B3":
+                        fib_state["target"] = target
+                        fib_state["stop"] = support * .94
                     if strategy == "B2":
                         fib_state["support"] = support
                         fib_state["previous_high"] = float(row["taiex_close"]) if pd.notna(row["taiex_close"]) else None
@@ -161,6 +181,7 @@ def evaluate_portfolio(signals: pd.DataFrame, prices: pd.DataFrame, cfg, strateg
                     shares -= qty
                     cost_basis -= allocated_cost
                     cash += proceeds
+                    accumulated_sells += proceeds
                     sells += 1
                     rows.append({
                         "signal_date":signal_day.date().isoformat(),
@@ -190,6 +211,10 @@ def evaluate_portfolio(signals: pd.DataFrame, prices: pd.DataFrame, cfg, strateg
         curve_rows.append({
             "date":day,"equity":equity,"cash":cash,"shares":shares,
             "market_value":shares*float(cl) if pd.notna(cl) else np.nan,
+            "invested_roi_pct": ((accumulated_sells+shares*float(cl)-accumulated_buys)/accumulated_buys*100)
+                if accumulated_buys>0 and pd.notna(cl) else np.nan,
+            "cumulative_buy_cost":accumulated_buys,
+            "cumulative_sell_proceeds":accumulated_sells,
             "position":int(shares>0),"breadth":row["breadth"],
             "etf_close":cl,"pending_action":";".join(x[0] for x in pending)
         })
@@ -212,8 +237,21 @@ def evaluate_portfolio(signals: pd.DataFrame, prices: pd.DataFrame, cfg, strateg
             "unrealized_pct":float((shares*float(last)/cost_basis-1)*100) if cost_basis>0 else None,
         }
     realized = ledger.loc[ledger.action=="SELL","realized_return_pct"]
+    purchases = float(ledger.loc[ledger.action=="BUY","gross_value"].sum())
+    sales = float(ledger.loc[ledger.action=="SELL","gross_value"].sum())
+    remaining_value = float(shares*last)
+    profit_on_trades = sales+remaining_value-purchases
+    # User's primary view: investment profit divided by actually executed
+    # purchases. Idle cash is explicitly excluded. A reused dollar is counted
+    # again on each purchase; disclose this turnover-based denominator.
+    traded_roi = (profit_on_trades/purchases*100) if purchases>0 else None
     stats = {
         "strategy":strategy,"completed_trades":n,"buy_orders":buys,"sell_orders":sells,
+        "total_invested":purchases,
+        "total_sale_proceeds":sales,
+        "ending_market_value":remaining_value,
+        "trading_profit":profit_on_trades,
+        "invested_return_pct":traded_roi,
         "skipped_buys_insufficient_cash":skipped_buys,
         "wins":win,"win_rate_pct":float(win/n*100) if n else None,
         "average_trade_return_pct":float(realized.mean()) if n else None,

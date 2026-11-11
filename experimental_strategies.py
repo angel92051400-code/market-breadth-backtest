@@ -13,6 +13,7 @@ VARIANTS = {
     "A2": "市場寬度波段：寬度由下上穿40%買進；跌回40%、達65%或持有30日賣出",
     "B2": "費波那契反彈：回撤位上方3%內止跌回升買進；6%追蹤回撤或45日出場",
     "C2": "混合波段：寬度由下上穿40%且指數高於Fib50%買進；寬度失守40%、Fib50%失守或45日出場",
+    "B3": "寬鬆費波那契：靠近回撤支撐上下6%且價格回升即買，1.414倍延伸目標與風控分批賣出",
 }
 
 
@@ -36,6 +37,32 @@ def add_variant_signals(signals: pd.DataFrame) -> pd.DataFrame:
     # Choose nearest support below current index close; fixed on entry signal.
     support = recent_levels.where(close_to_support).max(axis=1)
     s["b2_support"] = support
+    # B3 widens entry around 23.6/38.2/50/61.8/78.6% supports.
+    # 1.414 is a *separate extension target*, not a 140% retracement.
+    # Extrema are historical and shifted in fibonacci_support().
+    # Synthetic test fixtures may omit rolling extrema; B3 stays disabled.
+    if "rolling_high" not in s or "rolling_low" not in s:
+        s["rolling_high"] = np.nan
+        s["rolling_low"] = np.nan
+    span = s["rolling_high"] - s["rolling_low"]
+    b3_levels = pd.DataFrame(index=s.index)
+    for f in (.236, .382, .5, .618, .786):
+        b3_levels[f"r{int(f*1000)}"] = s["rolling_high"] - span * f
+    differences = b3_levels.sub(price, axis=0).abs().div(b3_levels.replace(0, np.nan))
+    closest = differences.idxmin(axis=1)
+    s["b3_support"] = b3_levels.lookup(s.index, closest) if hasattr(b3_levels, "lookup") else pd.Series(
+        [b3_levels.at[day, key] if isinstance(key, str) else np.nan
+         for day, key in zip(s.index, closest)], index=s.index
+    )
+    # A price uptick in a +/-6% support zone is enough, with no earlier
+    # crossover requirement and no use of market breadth.
+    s["entry_B3"] = (
+        (price > price.shift(1))
+        & differences.min(axis=1).le(.06)
+        & s["rolling_high"].notna()
+        & span.gt(0)
+    ).fillna(False)
+    s["b3_target"] = s["rolling_low"] + 1.414 * span
     s["entry_C2"] = (
         (breadth.shift(1) <= 40) & (breadth > 40)
         & breadth.shift(1).notna() & breadth.notna()

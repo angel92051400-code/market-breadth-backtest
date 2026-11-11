@@ -108,3 +108,16 @@ def test_no_buy_before_signal_next_open():
     ledger,curve,stats=evaluate_portfolio(signals,prices,Config(),"A")
     assert ledger.iloc[0].signal_date==signals.index[1].date().isoformat()
     assert ledger.iloc[0].date==signals.index[2].date().isoformat()
+
+def test_invested_roi_excludes_uninvested_cash():
+    signals,prices=data()
+    l,c,r=evaluate_portfolio(signals,prices,Config(),"A")
+    buys=l.loc[l.action=="BUY","gross_value"].sum()
+    net_sells=l.loc[l.action=="SELL","gross_value"].sum()
+    last_holding=c.iloc[-1].market_value
+    expected=(net_sells+last_holding-buys)/buys*100
+    assert r["total_invested"]==pytest.approx(buys)
+    assert r["trading_profit"]==pytest.approx(net_sells+last_holding-buys)
+    assert r["invested_return_pct"]==pytest.approx(expected)
+    assert c.invested_roi_pct.iloc[-1]==pytest.approx(expected)
+    assert r["strategy_return_pct"]!=pytest.approx(expected)
