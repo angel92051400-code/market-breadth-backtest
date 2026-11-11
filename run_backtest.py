@@ -10,6 +10,7 @@ from data_sources import download_dashboard,download_etf
 from backtest import Config,build_signals,evaluate
 from experimental_strategies import VARIANTS,add_variant_signals
 from portfolio_engine import evaluate_portfolio, NAMES
+from dca_baseline import evaluate_monthly_dca
 
 def run(args):
     output,cache = Path(args.output),Path(args.cache)
@@ -44,6 +45,17 @@ def run(args):
         curve.to_csv(output/f'equity_{strategy}.csv',index_label='date')
         summaries.append(summary)
         fig.add_trace(go.Scatter(x=curve.index,y=curve.equity,name=f'Strategy {strategy}'),row=3,col=1)
+    # Fair comparison: DCA is funded by the SAME initial NT$100,000 cash
+    # as every timed strategy. Its monthly purchases are not extra deposits.
+    aligned_etf = prices.loc[prices.index.intersection(signals.index)].sort_index()
+    dca_ledger,dca_curve,dca_summary=evaluate_monthly_dca(
+        aligned_etf,cfg,monthly_amount=args.dca_amount)
+    dca_ledger.to_csv(output/'trades_DCA.csv',index=False)
+    dca_curve.to_csv(output/'equity_DCA.csv',index_label='date')
+    summaries.append(dca_summary)
+    fig.add_trace(go.Scatter(
+        x=dca_curve.index,y=dca_curve.equity,name='0050 月初定期定額 3000（同資金）'
+    ),row=3,col=1)
     fig.update_layout(title=f'市場寬度策略回測 | {args.ticker} | 資料日 {meta["snapshot_date"]}',
         template='plotly_dark',height=1080,hovermode='x unified')
     fig.write_html(output/'report.html',include_plotlyjs='cdn')
@@ -59,13 +71,21 @@ def run(args):
             'A2/B2/C2 are predeclared alternative hypotheses, not optimized on test data.',
             'Signal history begins with the oldest available dashboard day; Fibonacci requires a 120-session warmup.',
             'Orders: T+1 next ETF open, buy fixed 10000 TWD with available cash, sell 50% of then-held shares per exit event.',
-            'Completed trades and win rate count partial SELL events, not full round trips. Portfolio return uses total equity and idle cash.'],
-        'strategies':NAMES,
-        'results':summaries}
+            'Completed trades and win rate count partial SELL events, not full round trips. Portfolio return uses total equity and idle cash.',
+            '0050 buy/hold return is the SAME common market benchmark for all strategies; equal values are intentional.',
+            'DCA prefunded benchmark uses initial 100000 in cash and invests 3000 once per calendar month on first ETF trading day. Costs and cash included.',
+            'Contributions-only DCA assumes NEW 3000 monthly external funds; contribution return/XIRR are not directly comparable with 100000 initial capital strategy returns.'],
+        'strategies':{**NAMES,'DCA':'每月首個交易日投入3000元0050；同初始資金10萬元，另計外部現金流績效'},
+        'results':summaries,
+        'comparison_note':'各策略同初始10萬元；定期定額每月從相同10萬元現金支付3000。外部每月另外存3000元的常見定期定額另列投入本金、期末市值、投入報酬率及XIRR，不可將外部投入績效與固定10萬元資產報酬直接比較。'}
     (output/'summary.json').write_text(json.dumps(metadata,ensure_ascii=False,indent=2,default=str),encoding='utf-8')
     print('===== Backtest results =====')
     for s in summaries:
         print(f"Strategy {s['strategy']} | buys={s['buy_orders']} sells={s['sell_orders']} | win_rate={s['win_rate_pct']} | return={s['strategy_return_pct']} | maxDD={s['max_drawdown_pct']} | exposure={s['exposure_pct']:.1f}%")
+    print(f"Monthly DCA: initial cash={cfg.initial_cash:.0f}, monthly buy={args.dca_amount:.0f}, "
+          f"invested={dca_summary['total_invested']:.0f}, "
+          f"ending value={dca_summary['ending_equity']:.2f}, "
+          f"external XIRR={dca_summary['external_xirr_pct']}")
     return summaries
 
 if __name__=='__main__':
@@ -74,6 +94,7 @@ if __name__=='__main__':
     p.add_argument('--buy',type=float,default=20)
     p.add_argument('--sell',type=float,default=50)
     p.add_argument('--buy-amount',type=float,default=10000)
+    p.add_argument('--dca-amount',type=float,default=3000)
     p.add_argument('--lookback',type=int,default=120)
     p.add_argument('--tolerance',type=float,default=.03)
     p.add_argument('--confirm-window',type=int,default=5)
