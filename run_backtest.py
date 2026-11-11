@@ -86,7 +86,7 @@ def run(args):
     dca_curve.to_csv(output/'equity_DCA.csv',index_label='date')
     summaries.append(dca_summary)
     fig.add_trace(go.Scatter(
-        x=dca_curve.index,y=dca_curve.equity,name='0050 月初定期定額 3000（同資金）'
+        x=dca_curve.index,y=dca_curve.equity,name='0050 月初定期定額 3000（同資金／含現金輔助）'
     ),row=3,col=1)
     fig.update_layout(title=f'市場寬度策略回測 | {args.ticker} | 資料日 {meta["snapshot_date"]}',
         template='plotly_dark',height=1080,hovermode='x unified')
@@ -108,7 +108,9 @@ def run(args):
             'DCA prefunded benchmark uses initial 100000 in cash and invests 3000 once per calendar month on first ETF trading day. Costs and cash included.',
             'Contributions-only DCA assumes NEW 3000 monthly external funds; contribution return/XIRR are not directly comparable with 100000 initial capital strategy returns.',
             '00631L targets 2x Taiwan 50 DAILY, subject to daily compounding, leverage and trading qualification; do not infer long-run return as twice 0050.',
-            '0050 and 00631L are compared over their exact shared trading-session intersection.'],
+            '0050 and 00631L are compared over their exact shared trading-session intersection.',
+            'Primary ROI is realized net sale proceeds plus last market value, minus gross buys including fees, divided by gross buys. Idle cash EXCLUDED.',
+            'Gross buy totals can count recycled money multiple times. Report XIRR separately to compare strategies with different cash-flow timing.'],
         'strategies':{**NAMES,'DCA':'每月首個交易日投入3000元0050；同初始資金10萬元，另計外部現金流績效'},
         'leveraged_comparison':{
             'ticker':'00631L.TW',
@@ -117,7 +119,7 @@ def run(args):
             'last_date':common.max().strftime('%Y-%m-%d'),
             'results':leveraged_summaries},
         'results':summaries,
-        'comparison_note':'各策略同初始10萬元；定期定額每月從相同10萬元現金支付3000。外部每月另外存3000元的常見定期定額另列投入本金、期末市值、投入報酬率及XIRR，不可將外部投入績效與固定10萬元資產報酬直接比較。'}
+        'comparison_note':'主表採實際投入報酬率=(累計賣出淨所得+期末持股市值-累計買入含費用金額)/累計買入含費用金額。未投入現金不計入；資金反覆買賣會重複計入累計投入，屬投入週轉報酬，不是XIRR。帳戶總報酬另外保留作輔助。定期定額每月投入3000；外部現金流另列XIRR。'}
     (output/'summary.json').write_text(json.dumps(metadata,ensure_ascii=False,indent=2,default=str),encoding='utf-8')
     print('===== Backtest results =====')
     for s in summaries:
