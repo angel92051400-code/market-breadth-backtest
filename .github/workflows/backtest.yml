@@ -1,0 +1,38 @@
+name: Manual Strategy Backtest
+on:
+  workflow_dispatch:
+    inputs:
+      buy:
+        description: '市場寬度買進門檻'
+        default: '20'
+        required: true
+        type: string
+      sell:
+        description: '市場寬度賣出門檻'
+        default: '70'
+        required: true
+        type: string
+permissions:
+  contents: read
+jobs:
+  backtest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: pip install -r requirements.txt
+      - run: python -m pytest -q
+      - name: Backtest
+        env:
+          BUY: ${{ inputs.buy }}
+          SELL: ${{ inputs.sell }}
+        run: python run_backtest.py --buy "$BUY" --sell "$SELL"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: strategy-backtest-report
+          path: output/
+          if-no-files-found: ignore
