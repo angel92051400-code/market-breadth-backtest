@@ -13,16 +13,6 @@ on:
         default: '50'
         required: true
         type: string
-  # One-time deployment for new 0050/00631L comparison; remove after success.
-  push:
-    branches: [main]
-    paths:
-      - run_backtest.py
-      - dca_baseline.py
-      - portfolio_engine.py
-      - experimental_strategies.py
-      - publish_report.py
-
 permissions:
   contents: write
 
