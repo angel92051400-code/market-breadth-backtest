@@ -119,4 +119,5 @@ def test_invested_roi_excludes_uninvested_cash():
     assert r["total_invested"]==pytest.approx(buys)
     assert r["trading_profit"]==pytest.approx(net_sells+last_holding-buys)
     assert r["invested_return_pct"]==pytest.approx(expected)
+    assert c.invested_roi_pct.iloc[-1]==pytest.approx(expected)
     assert r["strategy_return_pct"]!=pytest.approx(expected)
