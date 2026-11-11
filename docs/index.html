@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>市場寬度策略回測｜0050</title>
+<style>
+:root{color-scheme:dark}
+*{box-sizing:border-box}
+body{background:#10141d;color:#e5eaf3;font:15px/1.65 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;margin:0}
+main{max-width:1320px;margin:auto;padding:26px 18px 48px}
+h1{font-size:26px;margin:4px 0 6px}
+h2{font-size:18px}
+p,.muted{color:#a6b3c6}
+.panel{background:#1a2030;border:1px solid #364154;border-radius:14px;padding:17px;margin:16px 0}
+.warn{border-left:4px solid #f7b955}
+.table-wrap{overflow-x:auto}
+table{border-collapse:collapse;width:100%;min-width:610px}
+th,td{padding:12px;text-align:right;border-bottom:1px solid #364154}
+th:first-child,td:first-child{text-align:left}
+th{color:#a6b3c6;font-weight:600}
+iframe{width:100%;min-height:820px;border:0;background:#14171d;border-radius:10px}
+a{color:#8ac4ff}
+.files{display:flex;gap:10px;flex-wrap:wrap}
+.files a{padding:5px 10px;border:1px solid #495b74;border-radius:8px;text-decoration:none}
+@media(max-width:640px){iframe{min-height:760px} h1{font-size:22px}}
+</style>
+</head>
+<body><main>
+<p class="muted">獨立研究專案 · 使用交易日資料、隔日開盤成交</p>
+<h1>台股市場寬度 × 費波那契策略回測</h1>
+<p>標的 0050.TW　|　市場資料截至 2026-11-11　|　買進門檻 20%　|　賣出門檻 70%</p>
+<section class="panel warn">
+<strong>研究用途，非投資建議</strong>
+<p>2025 年資料缺漏或歷史成分股回推可能影響結果。交易筆數極少時，勝率不具統計意義。
+本模型僅在收盤後計算訊號，隔日開盤假設成交；以調整後價格估算，非可保證成交的實際報酬。
+目前資料使用當前前 640 大股票回推，存在存活者偏差。</p>
+</section>
+<section class="panel">
+<h2>策略績效比較</h2>
+<div class="table-wrap"><table>
+<thead><tr><th>策略</th><th>完成交易</th><th>勝率</th><th>策略總報酬</th><th>最大回撤</th><th>0050 持有報酬*</th></tr></thead>
+<tbody><tr><td>策略 A</td><td>1</td><td>100.0%</td><td>149.35%</td><td>-20.60%</td><td>115.97%</td></tr>
+<tr><td>策略 B</td><td>1</td><td>100.0%</td><td>138.88%</td><td>-10.84%</td><td>115.97%</td></tr></tbody></table></div>
+<p class="muted">* 比較基準與策略期間一致；請以逐筆交易及每日資金曲線核對所有結果，未平倉不列入已完成交易勝率。</p>
+</section>
+<section class="panel">
+<h2>互動圖表</h2>
+<iframe src="report.html" title="策略回測互動圖表" loading="lazy"></iframe>
+<p><a href="report.html" target="_blank" rel="noopener">另開完整互動圖表</a></p>
+</section>
+<section class="panel">
+<h2>下載資料與診斷</h2>
+<div class="files"><a href="summary.json" download>summary.json</a><a href="summary.csv" download>summary.csv</a><a href="signal_diagnostics.csv" download>signal_diagnostics.csv</a><a href="trades_A.csv" download>trades_A.csv</a><a href="trades_B.csv" download>trades_B.csv</a><a href="equity_A.csv" download>equity_A.csv</a><a href="equity_B.csv" download>equity_B.csv</a></div>
+</section>
+</main></body></html>

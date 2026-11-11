@@ -1,0 +1,61 @@
+{
+  "source": {
+    "snapshot_date": "2026-11-11",
+    "universe": "640",
+    "total": 640,
+    "sample_days": 486,
+    "source": "https://raw.githubusercontent.com/angel92051400-code/my-market-breadth/main/index.html"
+  },
+  "ticker": "0050.TW",
+  "config": {
+    "buy": 20.0,
+    "sell": 70.0,
+    "lookback": 120,
+    "fib_tolerance": 0.03,
+    "confirm_window": 5,
+    "buy_fee": 0.001425,
+    "sell_fee": 0.001425,
+    "sell_tax": 0.001,
+    "initial_cash": 100000.0
+  },
+  "limitations": [
+    "Historical top-640 universe uses present-day constituent list (survivorship and look-ahead bias).",
+    "Below 95% quote coverage breadth is missing; signals must not use interpolation.",
+    "Adjusted Yahoo OHLC is a total-return proxy, not an executable raw price.",
+    "All Fibonacci levels use trailing highs/lows through signal close; next-open trade.",
+    "Exploratory analysis, not a verified profitable strategy."
+  ],
+  "results": [
+    {
+      "strategy": "A",
+      "completed_trades": 1,
+      "wins": 1,
+      "win_rate_pct": 100.0,
+      "average_trade_return_pct": 152.85306241373152,
+      "median_trade_return_pct": 152.85306241373152,
+      "strategy_return_pct": 149.3521876727652,
+      "buy_hold_return_pct": 115.97376183112189,
+      "max_drawdown_pct": -20.600858369098706,
+      "open_trade": {
+        "entry_date": "2026-07-22",
+        "unrealized_pct": -1.384549076664121
+      },
+      "first_date": "2024-11-11",
+      "last_date": "2026-11-11"
+    },
+    {
+      "strategy": "B",
+      "completed_trades": 1,
+      "wins": 1,
+      "win_rate_pct": 100.0,
+      "average_trade_return_pct": 138.87907123922938,
+      "median_trade_return_pct": 138.87907123922938,
+      "strategy_return_pct": 138.87907123922938,
+      "buy_hold_return_pct": 115.97376183112189,
+      "max_drawdown_pct": -10.844114243836101,
+      "open_trade": null,
+      "first_date": "2024-11-11",
+      "last_date": "2026-11-11"
+    }
+  ]
+}
