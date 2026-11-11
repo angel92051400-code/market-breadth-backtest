@@ -23,9 +23,9 @@
 
 ## 與市場寬度網站自動連動
 
-GitHub Actions 每小時的第 23 分鐘檢查上游 `my-market-breadth/main/index.html` 是否有新版本。**只有來源 HTML 雜湊值與上次報告不同**，才自動重新執行 A/B/C 三組回測並更新 `docs/` 的 GitHub Pages 報告。手動 Run workflow 仍可自訂買賣門檻；上游變更後的自動回測使用固定基準 20%／70%。
+GitHub Actions 每週日台灣時間 21:23 檢查上游 `my-market-breadth/main/index.html` 是否有新版本。**只有來源 HTML 雜湊值與上次報告不同**，才自動重新執行 A/B/C 三組回測並更新 `docs/` 的 GitHub Pages 報告。手動 Run workflow 仍可自訂買賣門檻；上游變更後的自動回測使用固定基準 20%／70%。
 
-GitHub 的排程可能延遲，因此這是**近即時的版本檢查**，並不是上游一更新就秒級推送。若股價下載或資料檢查失敗，上一版網頁仍會保留。報告 `summary.json` 的 `source.source_sha256` 記錄實際使用的上游 HTML 版本，便於稽核。
+GitHub 的排程可能延遲，因此這是**每週一次的版本檢查**，並不是即時推送；使用者可隨時在 Actions 手動執行。瀏覽器的 Command + R 只會重新整理已發布的靜態網頁，並不觸發 Python 回測。若股價下載或資料檢查失敗，上一版網頁仍會保留。報告 `summary.json` 的 `source.source_sha256` 記錄實際使用的上游 HTML 版本，便於稽核。
 
 ## 純費波那契基準策略的限制
 
@@ -50,4 +50,4 @@ python run_backtest.py --buy 20 --sell 70
 - Yahoo 調整後價格是含配息／拆分的績效代理，不是可實際成交的原始開盤價。
 - 未平倉不計入勝率，並以同期間 ETF Buy & Hold 比較。
 - 樣本期間短／交易筆數少，統計結果不代表策略有預測能力。
-- 除手動回測外，系統每小時檢查一次市場寬度來源版本，有異動才更新回測。
+- 除手動回測外，系統每週日檢查一次市場寬度來源版本，有異動才更新回測。
