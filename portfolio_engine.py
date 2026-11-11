@@ -133,6 +133,7 @@ def evaluate_portfolio(signals: pd.DataFrame, prices: pd.DataFrame, cfg, strateg
     pending = []
     rows, curve_rows = [], []
     buys, sells, skipped_buys = 0, 0, 0
+    accumulated_buys = accumulated_sells = 0.0
     first_entry_idx = None
     first_entry_date = None
     fib_state = {"target":None, "stop":None, "support":None, "previous_high":None}
@@ -151,6 +152,7 @@ def evaluate_portfolio(signals: pd.DataFrame, prices: pd.DataFrame, cfg, strateg
                     cash -= amount
                     shares += qty
                     cost_basis += amount
+                    accumulated_buys += amount
                     buys += 1
                     if first_entry_idx is None:
                         first_entry_idx = i
@@ -179,6 +181,7 @@ def evaluate_portfolio(signals: pd.DataFrame, prices: pd.DataFrame, cfg, strateg
                     shares -= qty
                     cost_basis -= allocated_cost
                     cash += proceeds
+                    accumulated_sells += proceeds
                     sells += 1
                     rows.append({
                         "signal_date":signal_day.date().isoformat(),
@@ -208,6 +211,10 @@ def evaluate_portfolio(signals: pd.DataFrame, prices: pd.DataFrame, cfg, strateg
         curve_rows.append({
             "date":day,"equity":equity,"cash":cash,"shares":shares,
             "market_value":shares*float(cl) if pd.notna(cl) else np.nan,
+            "invested_roi_pct": ((accumulated_sells+shares*float(cl)-accumulated_buys)/accumulated_buys*100)
+                if accumulated_buys>0 and pd.notna(cl) else np.nan,
+            "cumulative_buy_cost":accumulated_buys,
+            "cumulative_sell_proceeds":accumulated_sells,
             "position":int(shares>0),"breadth":row["breadth"],
             "etf_close":cl,"pending_action":";".join(x[0] for x in pending)
         })
