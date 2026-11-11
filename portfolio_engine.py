@@ -13,7 +13,7 @@ from __future__ import annotations
 import numpy as np
 import pandas as pd
 
-STRATEGIES = ("A", "B", "C", "A2", "B2", "C2")
+STRATEGIES = ("A", "B", "C", "A2", "B2", "C2", "B3")
 NAMES = {
     "A": "原版：寬度20%反彈買進，50/60%分兩階段減碼",
     "B": "原版：費波那契收復支撐買進，達固定目標或跌破支撐減碼",
@@ -21,6 +21,7 @@ NAMES = {
     "A2": "寬度40%波段買進，50/60%減碼，失守40%或30日風控",
     "B2": "費波那契反彈買進，6%追蹤回撤、失守支撐或45日減碼",
     "C2": "寬度40%＋Fib50%買進，50/60%減碼，跌破條件或45日風控",
+    "B3": "寬鬆費波那契回升（距回撤位±6%），1.414倍延伸目標或風控半數賣出",
 }
 
 
@@ -71,6 +72,14 @@ def _new_orders(s, i, strategy, cfg, lots_active, age, fib_state):
                 exits.append("fib_target")
             elif stop is not None and _cross_down(index, old_index, stop):
                 exits.append("fib_stop")
+        elif strategy == "B3":
+            target, stop = fib_state["target"], fib_state["stop"]
+            if target is not None and _cross_up(index, old_index, target):
+                exits.append("fib_extension_1414")
+            elif stop is not None and _cross_down(index, old_index, stop):
+                exits.append("fib_support_failure_6pct")
+            elif age == 60:
+                exits.append("max_hold_60")
         elif strategy == "B2":
             stop = fib_state["support"]
             trail = fib_state["previous_high"]
@@ -89,6 +98,12 @@ def _new_orders(s, i, strategy, cfg, lots_active, age, fib_state):
             if pd.notna(row["fib_entry_support"]) and pd.notna(row["fib_entry_target"]):
                 support = float(row["fib_entry_support"])
                 target = float(row["fib_entry_target"])
+            else:
+                return []
+        if strategy == "B3":
+            if pd.notna(row["b3_support"]) and pd.notna(row["b3_target"]):
+                support = float(row["b3_support"])
+                target = float(row["b3_target"])
             else:
                 return []
         if strategy == "B2":
@@ -143,6 +158,9 @@ def evaluate_portfolio(signals: pd.DataFrame, prices: pd.DataFrame, cfg, strateg
                     if strategy == "B":
                         fib_state["target"] = target
                         fib_state["stop"] = support * (1-cfg.fib_tolerance)
+                    if strategy == "B3":
+                        fib_state["target"] = target
+                        fib_state["stop"] = support * .94
                     if strategy == "B2":
                         fib_state["support"] = support
                         fib_state["previous_high"] = float(row["taiex_close"]) if pd.notna(row["taiex_close"]) else None
