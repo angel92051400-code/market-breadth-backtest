@@ -7,7 +7,10 @@ import pandas as pd
 @dataclass
 class Config:
     buy: float = 20.0
-    sell: float = 70.0
+    sell: float = 50.0
+    very_hot: float = 60.0
+    buy_amount: float = 10000.0
+    sell_fraction: float = 0.5
     lookback: int = 120
     fib_tolerance: float = 0.03
     confirm_window: int = 5
@@ -29,7 +32,7 @@ def fibonacci_support(taiex: pd.DataFrame, window=120) -> pd.DataFrame:
     return out
 
 def build_signals(df: pd.DataFrame, cfg: Config) -> pd.DataFrame:
-    if not (0 < cfg.buy < cfg.sell < 100):
+    if not (0 < cfg.buy < cfg.sell < cfg.very_hot < 100):
         raise ValueError('Require 0 < buy < sell < 100')
     if cfg.lookback < 2 or cfg.confirm_window < 1:
         raise ValueError('Invalid lookback / confirmation window')
@@ -37,6 +40,7 @@ def build_signals(df: pd.DataFrame, cfg: Config) -> pd.DataFrame:
     breadth, prev = out['breadth'], out['breadth'].shift(1)
     out['recovery'] = ((prev <= cfg.buy) & (breadth > cfg.buy)).fillna(False)
     out['exit_breadth'] = ((prev < cfg.sell) & (breadth >= cfg.sell)).fillna(False)
+    out['exit_veryhot'] = ((prev < cfg.very_hot) & (breadth >= cfg.very_hot)).fillna(False)
     price, levels = out['taiex_close'], out[['fib_382', 'fib_500', 'fib_618']]
     deviations = levels.sub(price, axis=0).abs().div(levels.replace(0, np.nan))
     out['near_fib'] = (deviations.min(axis=1) <= cfg.fib_tolerance).fillna(False)
