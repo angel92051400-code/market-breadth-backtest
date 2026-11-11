@@ -129,6 +129,10 @@ def evaluate_monthly_dca(prices: pd.DataFrame, cfg, monthly_amount=DCA_AMOUNT):
         "ending_market_value":float(curve.market_value.iloc[-1]),
         "ending_equity":end_value,
         "net_profit":end_value-float(cfg.initial_cash),
+        # The primary comparison uses investment-only returns, no idle cash.
+        "invested_return_pct":(float(curve.market_value.iloc[-1])/cost-1)*100 if cost else None,
+        "trading_profit":float(curve.market_value.iloc[-1])-cost,
+        "total_sale_proceeds":0.0,
         "strategy_return_pct":(end_value/float(cfg.initial_cash)-1)*100,
         "max_drawdown_pct":float(curve.drawdown_pct.min()),
         "exposure_pct":float(curve.position.mean()*100),
