@@ -22,7 +22,8 @@
     "Historical top-640 universe uses present-day constituent list (survivorship and look-ahead bias).",
     "Below 95% quote coverage breadth is missing; signals must not use interpolation.",
     "Adjusted Yahoo OHLC is a total-return proxy, not an executable raw price.",
-    "All Fibonacci levels use trailing highs/lows through signal close; next-open trade.",
+    "Fibonacci levels use only prior completed sessions; next-open trade.",
+    "B is pure Fibonacci and never uses market breadth. C combines breadth with Fibonacci and breadth-based exits.",
     "Exploratory analysis, not a verified profitable strategy."
   ],
   "results": [
@@ -48,11 +49,28 @@
       "completed_trades": 1,
       "wins": 1,
       "win_rate_pct": 100.0,
-      "average_trade_return_pct": 138.87907123922938,
-      "median_trade_return_pct": 138.87907123922938,
-      "strategy_return_pct": 138.87907123922938,
+      "average_trade_return_pct": 15.861171271476483,
+      "median_trade_return_pct": 15.861171271476483,
+      "strategy_return_pct": 18.216418056113003,
       "buy_hold_return_pct": 115.97376183112189,
-      "max_drawdown_pct": -10.844114243836101,
+      "max_drawdown_pct": -1.966753825053702,
+      "open_trade": {
+        "entry_date": "2026-11-11",
+        "unrealized_pct": 2.0328180345405844
+      },
+      "first_date": "2024-11-11",
+      "last_date": "2026-11-11"
+    },
+    {
+      "strategy": "C",
+      "completed_trades": 1,
+      "wins": 1,
+      "win_rate_pct": 100.0,
+      "average_trade_return_pct": 137.50771941412654,
+      "median_trade_return_pct": 137.50771941412654,
+      "strategy_return_pct": 137.5077194141266,
+      "buy_hold_return_pct": 115.97376183112189,
+      "max_drawdown_pct": -10.844114243836112,
       "open_trade": null,
       "first_date": "2024-11-11",
       "last_date": "2026-11-11"

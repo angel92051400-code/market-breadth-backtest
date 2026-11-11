@@ -20,11 +20,11 @@ table{border-collapse:collapse;width:100%;min-width:610px}
 th,td{padding:12px;text-align:right;border-bottom:1px solid #364154}
 th:first-child,td:first-child{text-align:left}
 th{color:#a6b3c6;font-weight:600}
-iframe{width:100%;min-height:820px;border:0;background:#14171d;border-radius:10px}
+iframe{width:100%;min-height:1100px;border:0;background:#14171d;border-radius:10px}
 a{color:#8ac4ff}
 .files{display:flex;gap:10px;flex-wrap:wrap}
 .files a{padding:5px 10px;border:1px solid #495b74;border-radius:8px;text-decoration:none}
-@media(max-width:640px){iframe{min-height:760px} h1{font-size:22px}}
+@media(max-width:640px){iframe{min-height:960px} h1{font-size:22px}}
 </style>
 </head>
 <body><main>
@@ -38,11 +38,16 @@ a{color:#8ac4ff}
 目前資料使用當前前 640 大股票回推，存在存活者偏差。</p>
 </section>
 <section class="panel">
+<h2>三種策略規則</h2>
+<p><strong>A｜純市場寬度</strong>：過冷後回升買進、上穿過熱門檻賣出。</p><p><strong>B｜純費波那契</strong>：價格向上收復過去 120 日費波那契支撐，隔日買進；依訊號當日固定的下一級壓力目標或支撐失效價位出場，不使用市場寬度。</p><p><strong>C｜綜合策略</strong>：過冷回升後五日內且接近費波那契價位買進；市場寬度上穿過熱門檻賣出。</p>
+</section>
+<section class="panel">
 <h2>策略績效比較</h2>
 <div class="table-wrap"><table>
 <thead><tr><th>策略</th><th>完成交易</th><th>勝率</th><th>策略總報酬</th><th>最大回撤</th><th>0050 持有報酬*</th></tr></thead>
 <tbody><tr><td>策略 A</td><td>1</td><td>100.0%</td><td>149.35%</td><td>-20.60%</td><td>115.97%</td></tr>
-<tr><td>策略 B</td><td>1</td><td>100.0%</td><td>138.88%</td><td>-10.84%</td><td>115.97%</td></tr></tbody></table></div>
+<tr><td>策略 B</td><td>1</td><td>100.0%</td><td>18.22%</td><td>-1.97%</td><td>115.97%</td></tr>
+<tr><td>策略 C</td><td>1</td><td>100.0%</td><td>137.51%</td><td>-10.84%</td><td>115.97%</td></tr></tbody></table></div>
 <p class="muted">* 比較基準與策略期間一致；請以逐筆交易及每日資金曲線核對所有結果，未平倉不列入已完成交易勝率。</p>
 </section>
 <section class="panel">
@@ -52,6 +57,6 @@ a{color:#8ac4ff}
 </section>
 <section class="panel">
 <h2>下載資料與診斷</h2>
-<div class="files"><a href="summary.json" download>summary.json</a><a href="summary.csv" download>summary.csv</a><a href="signal_diagnostics.csv" download>signal_diagnostics.csv</a><a href="trades_A.csv" download>trades_A.csv</a><a href="trades_B.csv" download>trades_B.csv</a><a href="equity_A.csv" download>equity_A.csv</a><a href="equity_B.csv" download>equity_B.csv</a></div>
+<div class="files"><a href="summary.json" download>summary.json</a><a href="summary.csv" download>summary.csv</a><a href="signal_diagnostics.csv" download>signal_diagnostics.csv</a><a href="trades_A.csv" download>trades_A.csv</a><a href="trades_B.csv" download>trades_B.csv</a><a href="trades_C.csv" download>trades_C.csv</a><a href="equity_A.csv" download>equity_A.csv</a><a href="equity_B.csv" download>equity_B.csv</a><a href="equity_C.csv" download>equity_C.csv</a></div>
 </section>
 </main></body></html>
