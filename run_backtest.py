@@ -56,7 +56,7 @@ def run(args):
     # Run identical signal dates, cash, costs and tranches on true 00631L
     # adjusted prices (never approximate it as twice 0050's accumulated return).
     leveraged_summaries=[]
-    for strategy in ('A','B','C',*VARIANTS):
+    for strategy in ACTIVE_STRATEGIES:
         lev_ledger,lev_curve,lev_summary=evaluate_portfolio(signals,leveraged_prices,cfg,strategy)
         lev_ledger.to_csv(output/f'trades_00631L_{strategy}.csv',index=False)
         lev_curve.to_csv(output/f'equity_00631L_{strategy}.csv',index_label='date')
