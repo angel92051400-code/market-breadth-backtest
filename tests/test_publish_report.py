@@ -55,7 +55,8 @@ def test_published_site_has_new_five_strategies_and_dca(tmp_path):
     assert "策略 C2</td>" not in page
     assert "00631L" in page
     assert "定期定額" in page
-    assert "實際外部投入本金" in page
+    assert "0050 外部本金" in page
+    assert "正二外部本金" in page
     assert "12.35%" in page
     assert "一次買入持有（NT$10,000）" in page
     # One row per strategy, with two returns in the last columns.
