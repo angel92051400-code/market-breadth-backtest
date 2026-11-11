@@ -21,17 +21,34 @@ def test_published_site_has_report_metrics_and_downloads(tmp_path):
             {"strategy":"C","completed_trades":0,"win_rate_pct":None,
              "strategy_return_pct":0,"max_drawdown_pct":0,
              "buy_hold_return_pct":15.6},
+            {"strategy":"A2","completed_trades":2,"win_rate_pct":50.0,
+             "strategy_return_pct":6.0,"max_drawdown_pct":-8.0,
+             "exposure_pct":30.0,"buy_hold_return_pct":15.6},
+            {"strategy":"B2","completed_trades":1,"win_rate_pct":100.0,
+             "strategy_return_pct":9.0,"max_drawdown_pct":-3.0,
+             "exposure_pct":21.0,"buy_hold_return_pct":15.6},
+            {"strategy":"C2","completed_trades":1,"win_rate_pct":0.0,
+             "strategy_return_pct":-2.0,"max_drawdown_pct":-5.0,
+             "exposure_pct":12.0,"buy_hold_return_pct":15.6},
         ]
     }
     (source/"summary.json").write_text(json.dumps(meta),encoding="utf-8")
     for name in ("report.html","summary.csv","signal_diagnostics.csv",
-                 "trades_A.csv","trades_B.csv","trades_C.csv","equity_A.csv","equity_B.csv","equity_C.csv"):
+                 "trades_A.csv","trades_B.csv","trades_C.csv",
+                 "trades_A2.csv","trades_B2.csv","trades_C2.csv",
+                 "equity_A.csv","equity_B.csv","equity_C.csv",
+                 "equity_A2.csv","equity_B2.csv","equity_C2.csv"):
         (source/name).write_text("fixture",encoding="utf-8")
     generate(source,dest)
     page = (dest/"index.html").read_text(encoding="utf-8")
     assert "12.35%" in page
     assert "策略 B" in page
     assert "策略 C" in page
+    assert "策略 A2" in page
+    assert "策略 B2" in page
+    assert "策略 C2" in page
+    assert (dest/"trades_B2.csv").exists()
+    assert "30.0%" in page
     assert (dest/"trades_C.csv").exists()
     assert "report.html" in page
     assert "signal_diagnostics.csv" in page
