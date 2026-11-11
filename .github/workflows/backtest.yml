@@ -13,6 +13,14 @@ on:
         default: '50'
         required: true
         type: string
+  # One-time deployment of the unified table; remove after successful report check.
+  push:
+    branches: [main]
+    paths:
+      - run_backtest.py
+      - publish_report.py
+      - buy_hold_baseline.py
+
 permissions:
   contents: write
 
