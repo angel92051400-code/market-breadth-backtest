@@ -71,6 +71,11 @@ def add_v3_signals(s:pd.DataFrame)->pd.DataFrame:
         recovery.astype(int).rolling(5,min_periods=1).max().astype(bool)
         & b.gt(30) & b.notna() & within & rising
     ).fillna(False)
+    # Only one C3 entry per breadth recovery event even if the rolling
+    # five-day confirmation window stays true for several sessions.
+    candidate=out["entry_C3"].copy()
+    segment=recovery.cumsum()
+    out["entry_C3"]=candidate & candidate.groupby(segment).cumsum().eq(1)
     out["c3_support"]=out["b4_support"]
     out["exit_C3_weak"]=(
         b.lt(50)&px.lt(out["sma20"]) &
