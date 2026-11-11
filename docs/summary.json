@@ -27,9 +27,9 @@
     "Below 95% quote coverage breadth is missing; signals must not use interpolation.",
     "Adjusted Yahoo OHLC is a total-return proxy, not an executable raw price.",
     "Fibonacci levels use only prior completed sessions; next-open trade.",
-    "B is pure Fibonacci and never uses market breadth. C combines breadth with Fibonacci and breadth-based exits.",
+    "B4 is breadth-independent Fibonacci. C3 combines breadth confirmation and Fibonacci support. D is independent trend-following.",
     "Exploratory analysis, not a verified profitable strategy.",
-    "A2/B2/C2 are predeclared alternative hypotheses, not optimized on test data.",
+    "A3/B4/C3/D are exploratory alternatives proposed after inspecting the old backtest; they are not independent out-of-sample results.",
     "Signal history begins with the oldest available dashboard day; Fibonacci requires a 120-session warmup.",
     "Orders: T+1 next ETF open, buy 10000 TWD on every signal, inject external shortfall without cap, sell 50% on each distinct exit event.",
     "Completed trades and win rate count partial SELL events; strategy capital ROI excludes unused cash and counts only actually deposited funds.",
@@ -42,14 +42,12 @@
     "Gross buy totals count recycled sale proceeds; external deposits do not. Always buy 10000 per valid signal, injecting shortfalls and separately reporting XIRR."
   ],
   "strategies": {
-    "A": "原版：寬度20%反彈買進，50/60%分兩階段減碼",
-    "B": "原版：費波那契收復支撐買進，達固定目標或跌破支撐減碼",
-    "C": "原版：寬度過冷反彈＋費波那契，50/60%減碼",
-    "A2": "寬度40%波段買進，50/60%減碼，失守40%或30日風控",
-    "B2": "費波那契反彈買進，6%追蹤回撤、失守支撐或45日減碼",
-    "C2": "寬度40%＋Fib50%買進，50/60%減碼，跌破條件或45日風控",
-    "B3": "寬鬆費波那契回升（距回撤位±6%），1.414倍延伸目標或風控半數賣出",
-    "DCA": "每月首個交易日投入3000元0050；同初始資金10萬元，另計外部現金流績效"
+    "A": "市場寬度原版：從20%以下回升買10,000元，過熱50%/60%各賣現有股票一半",
+    "A3": "寬度趨勢：上穿30%買進，跌回50%或指數跌破20日均線減碼50%",
+    "B4": "費波那契波段：回撤區下跌後止跌反彈、同一波段只買一次；失守支撐或回撤6%減碼",
+    "C3": "寬度加費波那契：30%回升後5日內在回撤位附近止跌買進，寬度與指數同時轉弱或支撐失守減碼",
+    "D": "趨勢追蹤：加權指數突破前60交易日高點買進，跌破20日均線減碼",
+    "DCA": "每月第一個交易日投入3000元0050；另列外部逐月投入及XIRR"
   },
   "leveraged_comparison": {
     "ticker": "00631L.TW",
@@ -103,501 +101,261 @@
         "last_date": "2026-11-10"
       },
       {
-        "strategy": "B",
-        "completed_trades": 3,
-        "buy_orders": 1,
-        "sell_orders": 3,
-        "total_invested": 10000.0,
-        "total_sale_proceeds": 11222.55830135232,
-        "ending_market_value": 4219.918749170833,
-        "trading_profit": 5442.477050523152,
-        "invested_return_pct": 54.424770505231514,
-        "turnover_return_pct": 54.424770505231514,
-        "external_capital": 10000.0,
-        "capital_contributions_count": 1,
+        "strategy": "A3",
+        "completed_trades": 32,
+        "buy_orders": 22,
+        "sell_orders": 32,
+        "total_invested": 220000.0,
+        "total_sale_proceeds": 209024.4271609462,
+        "ending_market_value": 20563.825143493348,
+        "trading_profit": 9588.25230443955,
+        "invested_return_pct": 23.970630761098874,
+        "turnover_return_pct": 4.358296502017977,
+        "external_capital": 40000.0,
+        "capital_contributions_count": 4,
         "capital_deposits": [
           {
-            "date": "2025-06-05",
+            "date": "2025-03-13",
             "amount": 10000.0,
-            "reason": "buy_funding_B"
-          }
-        ],
-        "capital_xirr_pct": 35.45503880867847,
-        "capital_profit": 5442.477050523152,
-        "skipped_buys_insufficient_cash": 0,
-        "wins": 3,
-        "win_rate_pct": 100.0,
-        "average_trade_return_pct": 28.56987251526,
-        "median_trade_return_pct": 28.131306988980896,
-        "strategy_return_pct": 54.424770505231514,
-        "buy_hold_return_pct": 162.3693123574137,
-        "max_drawdown_pct": -12.743423631284312,
-        "exposure_pct": 72.16494845360825,
-        "open_trade": {
-          "entry_date": "2025-06-05",
-          "remaining_shares": 139.50144625358124,
-          "remaining_cost": 1250.0,
-          "unrealized_pct": 237.59349993366664
-        },
-        "first_date": "2024-11-11",
-        "last_date": "2026-11-10"
-      },
-      {
-        "strategy": "C",
-        "completed_trades": 26,
-        "buy_orders": 1,
-        "sell_orders": 26,
-        "total_invested": 10000.0,
-        "total_sale_proceeds": 11380.2209005946,
-        "ending_market_value": 0.0004995014054948713,
-        "trading_profit": 1380.2214000960066,
-        "invested_return_pct": 13.802214000960067,
-        "turnover_return_pct": 13.802214000960067,
-        "external_capital": 10000.0,
-        "capital_contributions_count": 1,
-        "capital_deposits": [
+            "reason": "buy_funding_A3"
+          },
           {
-            "date": "2025-05-15",
+            "date": "2025-03-19",
             "amount": 10000.0,
-            "reason": "buy_funding_C"
+            "reason": "buy_funding_A3"
+          },
+          {
+            "date": "2025-03-27",
+            "amount": 10000.0,
+            "reason": "buy_funding_A3"
+          },
+          {
+            "date": "2025-05-14",
+            "amount": 10000.0,
+            "reason": "buy_funding_A3"
           }
         ],
-        "capital_xirr_pct": 9.068779813037311,
-        "capital_profit": 1380.2214000960066,
+        "capital_xirr_pct": 14.315360979829222,
+        "capital_profit": 9588.25230443955,
         "skipped_buys_insufficient_cash": 0,
         "wins": 26,
-        "win_rate_pct": 100.0,
-        "average_trade_return_pct": 179.09004173222658,
-        "median_trade_return_pct": 170.0373902557065,
-        "strategy_return_pct": 13.802214000960067,
+        "win_rate_pct": 81.25,
+        "average_trade_return_pct": 24.099340842732044,
+        "median_trade_return_pct": 13.766649041331046,
+        "strategy_return_pct": 23.970630761098874,
         "buy_hold_return_pct": 162.3693123574137,
-        "max_drawdown_pct": -8.218855994987662,
-        "exposure_pct": 75.05154639175258,
+        "max_drawdown_pct": -40.71724489731682,
+        "exposure_pct": 83.71134020618557,
         "open_trade": {
-          "entry_date": "2025-05-15",
-          "remaining_shares": 1.6512443156855247e-05,
-          "remaining_cost": 0.00014901161193847656,
-          "unrealized_pct": 235.20971889164167
+          "entry_date": "2025-03-13",
+          "remaining_shares": 679.7958725121769,
+          "remaining_cost": 25001.53547618538,
+          "unrealized_pct": -17.74975115796016
         },
         "first_date": "2024-11-11",
         "last_date": "2026-11-10"
       },
       {
-        "strategy": "A2",
-        "completed_trades": 65,
-        "buy_orders": 35,
-        "sell_orders": 65,
-        "total_invested": 350000.0,
-        "total_sale_proceeds": 357425.0918063926,
-        "ending_market_value": 5159.844914509722,
-        "trading_profit": 12584.936720902333,
-        "invested_return_pct": 64.04761906290241,
-        "turnover_return_pct": 3.595696205972095,
-        "external_capital": 19649.343574415187,
-        "capital_contributions_count": 5,
+        "strategy": "B4",
+        "completed_trades": 10,
+        "buy_orders": 12,
+        "sell_orders": 10,
+        "total_invested": 120000.0,
+        "total_sale_proceeds": 160729.66731719885,
+        "ending_market_value": 14617.81719916691,
+        "trading_profit": 55347.484516365774,
+        "invested_return_pct": 92.2458075272763,
+        "turnover_return_pct": 46.12290376363815,
+        "external_capital": 60000.0,
+        "capital_contributions_count": 6,
         "capital_deposits": [
           {
             "date": "2025-05-19",
             "amount": 10000.0,
-            "reason": "buy_funding_A2"
-          },
-          {
-            "date": "2025-05-22",
-            "amount": 5019.222607783908,
-            "reason": "buy_funding_A2"
-          },
-          {
-            "date": "2025-06-11",
-            "amount": 2593.3689892280745,
-            "reason": "buy_funding_A2"
-          },
-          {
-            "date": "2025-06-17",
-            "amount": 1312.745697378743,
-            "reason": "buy_funding_A2"
-          },
-          {
-            "date": "2025-06-25",
-            "amount": 724.0062800244614,
-            "reason": "buy_funding_A2"
-          }
-        ],
-        "capital_xirr_pct": 40.38634859101341,
-        "capital_profit": 12584.936720902333,
-        "skipped_buys_insufficient_cash": 0,
-        "wins": 47,
-        "win_rate_pct": 72.3076923076923,
-        "average_trade_return_pct": 7.239002839510343,
-        "median_trade_return_pct": 4.329786394238111,
-        "strategy_return_pct": 64.04761906290241,
-        "buy_hold_return_pct": 162.3693123574137,
-        "max_drawdown_pct": -8.449585947190496,
-        "exposure_pct": 74.63917525773196,
-        "open_trade": {
-          "entry_date": "2025-05-19",
-          "remaining_shares": 170.57338560362717,
-          "remaining_cost": 6235.371460788678,
-          "unrealized_pct": -17.248796692265046
-        },
-        "first_date": "2024-11-11",
-        "last_date": "2026-11-10"
-      },
-      {
-        "strategy": "B2",
-        "completed_trades": 16,
-        "buy_orders": 7,
-        "sell_orders": 16,
-        "total_invested": 70000.0,
-        "total_sale_proceeds": 84443.41948039348,
-        "ending_market_value": 8207.808050239075,
-        "trading_profit": 22651.22753063256,
-        "invested_return_pct": 45.30245506126512,
-        "turnover_return_pct": 32.35889647233223,
-        "external_capital": 50000.0,
-        "capital_contributions_count": 5,
-        "capital_deposits": [
-          {
-            "date": "2025-05-19",
-            "amount": 10000.0,
-            "reason": "buy_funding_B2"
-          },
-          {
-            "date": "2025-05-21",
-            "amount": 10000.0,
-            "reason": "buy_funding_B2"
-          },
-          {
-            "date": "2025-06-04",
-            "amount": 10000.0,
-            "reason": "buy_funding_B2"
-          },
-          {
-            "date": "2025-06-10",
-            "amount": 10000.0,
-            "reason": "buy_funding_B2"
-          },
-          {
-            "date": "2025-06-23",
-            "amount": 10000.0,
-            "reason": "buy_funding_B2"
-          }
-        ],
-        "capital_xirr_pct": 29.682898044278527,
-        "capital_profit": 22651.22753063256,
-        "skipped_buys_insufficient_cash": 0,
-        "wins": 15,
-        "win_rate_pct": 93.75,
-        "average_trade_return_pct": 184.10796056227693,
-        "median_trade_return_pct": 205.3259460075725,
-        "strategy_return_pct": 45.30245506126512,
-        "buy_hold_return_pct": 162.3693123574137,
-        "max_drawdown_pct": -7.919777685137241,
-        "exposure_pct": 74.63917525773196,
-        "open_trade": {
-          "entry_date": "2025-05-19",
-          "remaining_shares": 271.33249752856443,
-          "remaining_cost": 10000.762939453125,
-          "unrealized_pct": -17.928181080473593
-        },
-        "first_date": "2024-11-11",
-        "last_date": "2026-11-10"
-      },
-      {
-        "strategy": "C2",
-        "completed_trades": 65,
-        "buy_orders": 36,
-        "sell_orders": 65,
-        "total_invested": 360000.0,
-        "total_sale_proceeds": 370625.46252036165,
-        "ending_market_value": 2579.9224572548615,
-        "trading_profit": 13205.384977616486,
-        "invested_return_pct": 67.20522203505473,
-        "turnover_return_pct": 3.6681624937823574,
-        "external_capital": 19649.343574415187,
-        "capital_contributions_count": 5,
-        "capital_deposits": [
-          {
-            "date": "2025-05-19",
-            "amount": 10000.0,
-            "reason": "buy_funding_C2"
-          },
-          {
-            "date": "2025-05-22",
-            "amount": 5019.222607783908,
-            "reason": "buy_funding_C2"
-          },
-          {
-            "date": "2025-06-11",
-            "amount": 2593.3689892280745,
-            "reason": "buy_funding_C2"
-          },
-          {
-            "date": "2025-06-17",
-            "amount": 1312.745697378743,
-            "reason": "buy_funding_C2"
-          },
-          {
-            "date": "2025-06-25",
-            "amount": 724.0062800244614,
-            "reason": "buy_funding_C2"
-          }
-        ],
-        "capital_xirr_pct": 42.23244501987933,
-        "capital_profit": 13205.384977616486,
-        "skipped_buys_insufficient_cash": 0,
-        "wins": 46,
-        "win_rate_pct": 70.76923076923077,
-        "average_trade_return_pct": 6.988212966951967,
-        "median_trade_return_pct": 4.839505506203756,
-        "strategy_return_pct": 67.20522203505473,
-        "buy_hold_return_pct": 162.3693123574137,
-        "max_drawdown_pct": -6.9870193129910385,
-        "exposure_pct": 74.63917525773196,
-        "open_trade": {
-          "entry_date": "2025-05-19",
-          "remaining_shares": 85.2866928018136,
-          "remaining_cost": 3117.6857303943393,
-          "unrealized_pct": -17.248796692265035
-        },
-        "first_date": "2024-11-11",
-        "last_date": "2026-11-10"
-      },
-      {
-        "strategy": "B3",
-        "completed_trades": 6,
-        "buy_orders": 105,
-        "sell_orders": 6,
-        "total_invested": 1050000.0,
-        "total_sale_proceeds": 1338681.5855339952,
-        "ending_market_value": 168888.67990584148,
-        "trading_profit": 457570.2654398368,
-        "invested_return_pct": 112.248343896696,
-        "turnover_return_pct": 43.57812051807969,
-        "external_capital": 407640.9945619743,
-        "capital_contributions_count": 41,
-        "capital_deposits": [
-          {
-            "date": "2025-05-15",
-            "amount": 10000.0,
-            "reason": "buy_funding_B3"
-          },
-          {
-            "date": "2025-05-19",
-            "amount": 10000.0,
-            "reason": "buy_funding_B3"
-          },
-          {
-            "date": "2025-05-21",
-            "amount": 10000.0,
-            "reason": "buy_funding_B3"
-          },
-          {
-            "date": "2025-05-22",
-            "amount": 10000.0,
-            "reason": "buy_funding_B3"
-          },
-          {
-            "date": "2025-05-29",
-            "amount": 10000.0,
-            "reason": "buy_funding_B3"
-          },
-          {
-            "date": "2025-06-04",
-            "amount": 10000.0,
-            "reason": "buy_funding_B3"
-          },
-          {
-            "date": "2025-06-05",
-            "amount": 10000.0,
-            "reason": "buy_funding_B3"
-          },
-          {
-            "date": "2025-06-06",
-            "amount": 10000.0,
-            "reason": "buy_funding_B3"
-          },
-          {
-            "date": "2025-06-10",
-            "amount": 10000.0,
-            "reason": "buy_funding_B3"
-          },
-          {
-            "date": "2025-06-11",
-            "amount": 10000.0,
-            "reason": "buy_funding_B3"
-          },
-          {
-            "date": "2025-06-12",
-            "amount": 10000.0,
-            "reason": "buy_funding_B3"
-          },
-          {
-            "date": "2025-06-18",
-            "amount": 10000.0,
-            "reason": "buy_funding_B3"
-          },
-          {
-            "date": "2025-06-19",
-            "amount": 10000.0,
-            "reason": "buy_funding_B3"
-          },
-          {
-            "date": "2025-06-23",
-            "amount": 10000.0,
-            "reason": "buy_funding_B3"
-          },
-          {
-            "date": "2025-06-25",
-            "amount": 10000.0,
-            "reason": "buy_funding_B3"
-          },
-          {
-            "date": "2025-06-26",
-            "amount": 10000.0,
-            "reason": "buy_funding_B3"
-          },
-          {
-            "date": "2025-06-27",
-            "amount": 10000.0,
-            "reason": "buy_funding_B3"
-          },
-          {
-            "date": "2025-06-30",
-            "amount": 10000.0,
-            "reason": "buy_funding_B3"
-          },
-          {
-            "date": "2025-07-02",
-            "amount": 10000.0,
-            "reason": "buy_funding_B3"
-          },
-          {
-            "date": "2025-07-03",
-            "amount": 10000.0,
-            "reason": "buy_funding_B3"
-          },
-          {
-            "date": "2025-07-04",
-            "amount": 10000.0,
-            "reason": "buy_funding_B3"
-          },
-          {
-            "date": "2025-07-10",
-            "amount": 10000.0,
-            "reason": "buy_funding_B3"
-          },
-          {
-            "date": "2025-07-11",
-            "amount": 10000.0,
-            "reason": "buy_funding_B3"
-          },
-          {
-            "date": "2025-07-14",
-            "amount": 10000.0,
-            "reason": "buy_funding_B3"
-          },
-          {
-            "date": "2025-07-16",
-            "amount": 10000.0,
-            "reason": "buy_funding_B3"
-          },
-          {
-            "date": "2025-07-17",
-            "amount": 10000.0,
-            "reason": "buy_funding_B3"
-          },
-          {
-            "date": "2025-07-18",
-            "amount": 10000.0,
-            "reason": "buy_funding_B3"
-          },
-          {
-            "date": "2025-07-21",
-            "amount": 10000.0,
-            "reason": "buy_funding_B3"
-          },
-          {
-            "date": "2025-07-24",
-            "amount": 10000.0,
-            "reason": "buy_funding_B3"
-          },
-          {
-            "date": "2025-07-25",
-            "amount": 10000.0,
-            "reason": "buy_funding_B3"
+            "reason": "buy_funding_B4"
           },
           {
             "date": "2025-07-29",
             "amount": 10000.0,
-            "reason": "buy_funding_B3"
+            "reason": "buy_funding_B4"
           },
           {
-            "date": "2025-07-31",
+            "date": "2025-08-22",
             "amount": 10000.0,
-            "reason": "buy_funding_B3"
+            "reason": "buy_funding_B4"
           },
           {
-            "date": "2025-08-01",
+            "date": "2025-10-01",
             "amount": 10000.0,
-            "reason": "buy_funding_B3"
+            "reason": "buy_funding_B4"
           },
           {
-            "date": "2025-12-09",
-            "amount": 7640.994561974308,
-            "reason": "buy_funding_B3"
-          },
-          {
-            "date": "2025-12-11",
+            "date": "2025-11-04",
             "amount": 10000.0,
-            "reason": "buy_funding_B3"
+            "reason": "buy_funding_B4"
           },
           {
-            "date": "2025-12-15",
+            "date": "2026-02-04",
             "amount": 10000.0,
-            "reason": "buy_funding_B3"
-          },
-          {
-            "date": "2025-12-22",
-            "amount": 10000.0,
-            "reason": "buy_funding_B3"
-          },
-          {
-            "date": "2025-12-23",
-            "amount": 10000.0,
-            "reason": "buy_funding_B3"
-          },
-          {
-            "date": "2025-12-24",
-            "amount": 10000.0,
-            "reason": "buy_funding_B3"
-          },
-          {
-            "date": "2025-12-26",
-            "amount": 10000.0,
-            "reason": "buy_funding_B3"
-          },
-          {
-            "date": "2025-12-29",
-            "amount": 10000.0,
-            "reason": "buy_funding_B3"
+            "reason": "buy_funding_B4"
           }
         ],
-        "capital_xirr_pct": 79.06766890386112,
-        "capital_profit": 457570.2654398368,
+        "capital_xirr_pct": 75.77733763988792,
+        "capital_profit": 55347.484516365774,
         "skipped_buys_insufficient_cash": 0,
-        "wins": 6,
-        "win_rate_pct": 100.0,
-        "average_trade_return_pct": 53.893174988928614,
-        "median_trade_return_pct": 45.377537045752845,
-        "strategy_return_pct": 112.248343896696,
+        "wins": 8,
+        "win_rate_pct": 80.0,
+        "average_trade_return_pct": 44.858463477654844,
+        "median_trade_return_pct": 28.018620686747763,
+        "strategy_return_pct": 92.2458075272763,
         "buy_hold_return_pct": 162.3693123574137,
-        "max_drawdown_pct": -13.913377603096377,
+        "max_drawdown_pct": -16.265855178598155,
+        "exposure_pct": 74.63917525773196,
+        "open_trade": {
+          "entry_date": "2025-05-19",
+          "remaining_shares": 483.2336264187408,
+          "remaining_cost": 15546.875,
+          "unrealized_pct": -5.975849171187719
+        },
+        "first_date": "2024-11-11",
+        "last_date": "2026-11-10"
+      },
+      {
+        "strategy": "C3",
+        "completed_trades": 24,
+        "buy_orders": 18,
+        "sell_orders": 24,
+        "total_invested": 180000.0,
+        "total_sale_proceeds": 184629.6845728492,
+        "ending_market_value": 11610.8385074719,
+        "trading_profit": 16240.523080321087,
+        "invested_return_pct": 59.18137699265294,
+        "turnover_return_pct": 9.022512822400603,
+        "external_capital": 27441.948642623272,
+        "capital_contributions_count": 4,
+        "capital_deposits": [
+          {
+            "date": "2025-05-15",
+            "amount": 10000.0,
+            "reason": "buy_funding_C3"
+          },
+          {
+            "date": "2025-06-05",
+            "amount": 5285.5299296915755,
+            "reason": "buy_funding_C3"
+          },
+          {
+            "date": "2025-06-25",
+            "amount": 2156.418712931697,
+            "reason": "buy_funding_C3"
+          },
+          {
+            "date": "2025-07-10",
+            "amount": 10000.0,
+            "reason": "buy_funding_C3"
+          }
+        ],
+        "capital_xirr_pct": 38.913648365234586,
+        "capital_profit": 16240.523080321087,
+        "skipped_buys_insufficient_cash": 0,
+        "wins": 19,
+        "win_rate_pct": 79.16666666666666,
+        "average_trade_return_pct": 16.15373201174228,
+        "median_trade_return_pct": 4.269368585699063,
+        "strategy_return_pct": 59.18137699265294,
+        "buy_hold_return_pct": 162.3693123574137,
+        "max_drawdown_pct": -16.645984658906553,
         "exposure_pct": 75.05154639175258,
         "open_trade": {
           "entry_date": "2025-05-15",
-          "remaining_shares": 5583.096856391454,
-          "remaining_cost": 166718.75,
-          "unrealized_pct": 1.3015512087521497
+          "remaining_shares": 383.8293721478314,
+          "remaining_cost": 14084.612727165222,
+          "unrealized_pct": -17.563665168600007
+        },
+        "first_date": "2024-11-11",
+        "last_date": "2026-11-10"
+      },
+      {
+        "strategy": "D",
+        "completed_trades": 18,
+        "buy_orders": 33,
+        "sell_orders": 18,
+        "total_invested": 330000.0,
+        "total_sale_proceeds": 347754.0111172307,
+        "ending_market_value": 8552.473498583728,
+        "trading_profit": 26306.484615814406,
+        "invested_return_pct": 27.112264575583893,
+        "turnover_return_pct": 7.971662004792244,
+        "external_capital": 97027.98725085054,
+        "capital_contributions_count": 10,
+        "capital_deposits": [
+          {
+            "date": "2025-06-27",
+            "amount": 10000.0,
+            "reason": "buy_funding_D"
+          },
+          {
+            "date": "2025-07-17",
+            "amount": 10000.0,
+            "reason": "buy_funding_D"
+          },
+          {
+            "date": "2025-08-06",
+            "amount": 10000.0,
+            "reason": "buy_funding_D"
+          },
+          {
+            "date": "2025-08-08",
+            "amount": 10000.0,
+            "reason": "buy_funding_D"
+          },
+          {
+            "date": "2025-08-12",
+            "amount": 10000.0,
+            "reason": "buy_funding_D"
+          },
+          {
+            "date": "2025-08-14",
+            "amount": 10000.0,
+            "reason": "buy_funding_D"
+          },
+          {
+            "date": "2025-08-19",
+            "amount": 10000.0,
+            "reason": "buy_funding_D"
+          },
+          {
+            "date": "2025-10-17",
+            "amount": 7027.987250850543,
+            "reason": "buy_funding_D"
+          },
+          {
+            "date": "2025-10-28",
+            "amount": 10000.0,
+            "reason": "buy_funding_D"
+          },
+          {
+            "date": "2025-10-30",
+            "amount": 10000.0,
+            "reason": "buy_funding_D"
+          }
+        ],
+        "capital_xirr_pct": 21.919259339255625,
+        "capital_profit": 26306.484615814406,
+        "skipped_buys_insufficient_cash": 0,
+        "wins": 17,
+        "win_rate_pct": 94.44444444444444,
+        "average_trade_return_pct": 8.939934687224982,
+        "median_trade_return_pct": 8.83619119339869,
+        "strategy_return_pct": 27.112264575583893,
+        "buy_hold_return_pct": 162.3693123574137,
+        "max_drawdown_pct": -10.561098434058092,
+        "exposure_pct": 68.8659793814433,
+        "open_trade": {
+          "entry_date": "2025-06-27",
+          "remaining_shares": 282.726396647396,
+          "remaining_cost": 11282.310485839844,
+          "unrealized_pct": -24.195726493099702
         },
         "first_date": "2024-11-11",
         "last_date": "2026-11-10"
@@ -645,12 +403,12 @@
       "buy_orders": 7,
       "sell_orders": 26,
       "total_invested": 70000.0,
-      "total_sale_proceeds": 71294.77492748675,
-      "ending_market_value": 7099.168705442598,
-      "trading_profit": 8393.943632929353,
-      "invested_return_pct": 36.53746649153551,
-      "turnover_return_pct": 11.991348047041933,
-      "external_capital": 22973.523998643814,
+      "total_sale_proceeds": 71294.77511590546,
+      "ending_market_value": 7099.168705442631,
+      "trading_profit": 8393.94382134809,
+      "invested_return_pct": 36.537467611355545,
+      "turnover_return_pct": 11.991348316211557,
+      "external_capital": 22973.523810225208,
       "capital_contributions_count": 3,
       "capital_deposits": [
         {
@@ -665,536 +423,286 @@
         },
         {
           "date": "2026-09-17",
-          "amount": 2973.5239986438137,
+          "amount": 2973.523810225208,
           "reason": "buy_funding_A"
         }
       ],
-      "capital_xirr_pct": 25.847347592467408,
-      "capital_profit": 8393.943632929353,
+      "capital_xirr_pct": 25.84734816120713,
+      "capital_profit": 8393.94382134809,
       "skipped_buys_insufficient_cash": 0,
       "wins": 26,
       "win_rate_pct": 100.0,
-      "average_trade_return_pct": 39.989756786972144,
-      "median_trade_return_pct": 30.626966204992215,
-      "strategy_return_pct": 36.53746649153551,
+      "average_trade_return_pct": 39.98975707069543,
+      "median_trade_return_pct": 30.626966270771362,
+      "strategy_return_pct": 36.537467611355545,
       "buy_hold_return_pct": 108.64905342251193,
-      "max_drawdown_pct": -6.599388669728656,
+      "max_drawdown_pct": -6.5993886697286674,
       "exposure_pct": 76.28865979381443,
       "open_trade": {
         "entry_date": "2025-05-07",
-        "remaining_shares": 71.20530514286804,
+        "remaining_shares": 71.20530514286837,
         "remaining_cost": 7500.03844499588,
-        "unrealized_pct": -5.34490246274334
+        "unrealized_pct": -5.344902462742896
       },
       "first_date": "2024-11-11",
       "last_date": "2026-11-10"
     },
     {
-      "strategy": "B",
-      "completed_trades": 3,
-      "buy_orders": 1,
-      "sell_orders": 3,
-      "total_invested": 10000.0,
-      "total_sale_proceeds": 10110.292935551857,
-      "ending_market_value": 2810.2598641354853,
-      "trading_profit": 2920.5527996873425,
-      "invested_return_pct": 29.205527996873425,
-      "turnover_return_pct": 29.205527996873425,
-      "external_capital": 10000.0,
-      "capital_contributions_count": 1,
+      "strategy": "A3",
+      "completed_trades": 32,
+      "buy_orders": 22,
+      "sell_orders": 32,
+      "total_invested": 220000.0,
+      "total_sale_proceeds": 204639.42597719192,
+      "ending_market_value": 22960.33977010953,
+      "trading_profit": 7599.765747301455,
+      "invested_return_pct": 18.999414368253635,
+      "turnover_return_pct": 3.454438976046116,
+      "external_capital": 40000.0,
+      "capital_contributions_count": 4,
       "capital_deposits": [
         {
-          "date": "2025-06-05",
+          "date": "2025-03-13",
           "amount": 10000.0,
-          "reason": "buy_funding_B"
-        }
-      ],
-      "capital_xirr_pct": 19.595794486941344,
-      "capital_profit": 2920.5527996873425,
-      "skipped_buys_insufficient_cash": 0,
-      "wins": 3,
-      "win_rate_pct": 100.0,
-      "average_trade_return_pct": 15.493711433202728,
-      "median_trade_return_pct": 15.86117127147646,
-      "strategy_return_pct": 29.205527996873425,
-      "buy_hold_return_pct": 108.64905342251193,
-      "max_drawdown_pct": -5.050671605704471,
-      "exposure_pct": 72.16494845360825,
-      "open_trade": {
-        "entry_date": "2025-06-05",
-        "remaining_shares": 28.18716098451227,
-        "remaining_cost": 1250.0,
-        "unrealized_pct": 124.82078913083883
-      },
-      "first_date": "2024-11-11",
-      "last_date": "2026-11-10"
-    },
-    {
-      "strategy": "C",
-      "completed_trades": 26,
-      "buy_orders": 1,
-      "sell_orders": 26,
-      "total_invested": 10000.0,
-      "total_sale_proceeds": 10841.227427310552,
-      "ending_market_value": 0.0003333606185097502,
-      "trading_profit": 841.2277606711705,
-      "invested_return_pct": 8.412277606711704,
-      "turnover_return_pct": 8.412277606711704,
-      "external_capital": 10000.0,
-      "capital_contributions_count": 1,
-      "capital_deposits": [
+          "reason": "buy_funding_A3"
+        },
         {
-          "date": "2025-05-15",
+          "date": "2025-03-19",
           "amount": 10000.0,
-          "reason": "buy_funding_C"
+          "reason": "buy_funding_A3"
+        },
+        {
+          "date": "2025-03-27",
+          "amount": 10000.0,
+          "reason": "buy_funding_A3"
+        },
+        {
+          "date": "2025-05-14",
+          "amount": 10000.0,
+          "reason": "buy_funding_A3"
         }
       ],
-      "capital_xirr_pct": 5.572845056026628,
-      "capital_profit": 841.2277606711705,
+      "capital_xirr_pct": 11.439551156452547,
+      "capital_profit": 7599.765747301455,
       "skipped_buys_insufficient_cash": 0,
-      "wins": 26,
-      "win_rate_pct": 100.0,
-      "average_trade_return_pct": 81.79222690713956,
-      "median_trade_return_pct": 81.32907535173584,
-      "strategy_return_pct": 8.412277606711704,
+      "wins": 28,
+      "win_rate_pct": 87.5,
+      "average_trade_return_pct": 13.43806327025484,
+      "median_trade_return_pct": 8.310267494158463,
+      "strategy_return_pct": 18.999414368253635,
       "buy_hold_return_pct": 108.64905342251193,
-      "max_drawdown_pct": -4.193912846779035,
-      "exposure_pct": 75.05154639175258,
+      "max_drawdown_pct": -19.226519241305084,
+      "exposure_pct": 83.71134020618557,
       "open_trade": {
-        "entry_date": "2025-05-15",
-        "remaining_shares": 3.343637198733411e-06,
-        "remaining_cost": 0.00014901161193847656,
-        "unrealized_pct": 123.71452410526706
+        "entry_date": "2025-03-13",
+        "remaining_shares": 230.29428759189486,
+        "remaining_cost": 25001.53547618538,
+        "unrealized_pct": -8.164281381918093
       },
       "first_date": "2024-11-11",
       "last_date": "2026-11-10"
     },
     {
-      "strategy": "A2",
-      "completed_trades": 65,
-      "buy_orders": 35,
-      "sell_orders": 65,
-      "total_invested": 350000.0,
-      "total_sale_proceeds": 351410.3696762041,
-      "ending_market_value": 5743.297744227662,
-      "trading_profit": 7153.667420431797,
-      "invested_return_pct": 36.90204728139428,
-      "turnover_return_pct": 2.0439049772662274,
-      "external_capital": 19385.55702853543,
-      "capital_contributions_count": 5,
+      "strategy": "B4",
+      "completed_trades": 10,
+      "buy_orders": 12,
+      "sell_orders": 10,
+      "total_invested": 120000.0,
+      "total_sale_proceeds": 134246.6444087929,
+      "ending_market_value": 15140.860555393227,
+      "trading_profit": 29387.50496418611,
+      "invested_return_pct": 48.97917494031019,
+      "turnover_return_pct": 24.489587470155094,
+      "external_capital": 60000.0,
+      "capital_contributions_count": 6,
       "capital_deposits": [
         {
           "date": "2025-05-19",
           "amount": 10000.0,
-          "reason": "buy_funding_A2"
-        },
-        {
-          "date": "2025-05-22",
-          "amount": 5041.037733560696,
-          "reason": "buy_funding_A2"
-        },
-        {
-          "date": "2025-06-11",
-          "amount": 2584.158856962258,
-          "reason": "buy_funding_A2"
-        },
-        {
-          "date": "2025-06-17",
-          "amount": 1152.449498911259,
-          "reason": "buy_funding_A2"
-        },
-        {
-          "date": "2025-06-25",
-          "amount": 607.9109391012134,
-          "reason": "buy_funding_A2"
-        }
-      ],
-      "capital_xirr_pct": 24.00079366573432,
-      "capital_profit": 7153.667420431797,
-      "skipped_buys_insufficient_cash": 0,
-      "wins": 49,
-      "win_rate_pct": 75.38461538461539,
-      "average_trade_return_pct": 4.033299153458609,
-      "median_trade_return_pct": 2.1218575687149466,
-      "strategy_return_pct": 36.90204728139428,
-      "buy_hold_return_pct": 108.64905342251193,
-      "max_drawdown_pct": -5.561104366516223,
-      "exposure_pct": 74.63917525773196,
-      "open_trade": {
-        "entry_date": "2025-05-19",
-        "remaining_shares": 57.60579659003612,
-        "remaining_cost": 6235.371460788678,
-        "unrealized_pct": -7.891650395737216
-      },
-      "first_date": "2024-11-11",
-      "last_date": "2026-11-10"
-    },
-    {
-      "strategy": "B2",
-      "completed_trades": 16,
-      "buy_orders": 7,
-      "sell_orders": 16,
-      "total_invested": 70000.0,
-      "total_sale_proceeds": 73153.98623426577,
-      "ending_market_value": 9164.974475812938,
-      "trading_profit": 12318.96071007871,
-      "invested_return_pct": 24.637921420157422,
-      "turnover_return_pct": 17.598515300112442,
-      "external_capital": 50000.0,
-      "capital_contributions_count": 5,
-      "capital_deposits": [
-        {
-          "date": "2025-05-19",
-          "amount": 10000.0,
-          "reason": "buy_funding_B2"
-        },
-        {
-          "date": "2025-05-21",
-          "amount": 10000.0,
-          "reason": "buy_funding_B2"
-        },
-        {
-          "date": "2025-06-04",
-          "amount": 10000.0,
-          "reason": "buy_funding_B2"
-        },
-        {
-          "date": "2025-06-10",
-          "amount": 10000.0,
-          "reason": "buy_funding_B2"
-        },
-        {
-          "date": "2025-06-23",
-          "amount": 10000.0,
-          "reason": "buy_funding_B2"
-        }
-      ],
-      "capital_xirr_pct": 16.55763416897182,
-      "capital_profit": 12318.96071007871,
-      "skipped_buys_insufficient_cash": 0,
-      "wins": 15,
-      "win_rate_pct": 93.75,
-      "average_trade_return_pct": 86.80868548067788,
-      "median_trade_return_pct": 98.51511114650447,
-      "strategy_return_pct": 24.637921420157422,
-      "buy_hold_return_pct": 108.64905342251193,
-      "max_drawdown_pct": -4.193912846779035,
-      "exposure_pct": 74.63917525773196,
-      "open_trade": {
-        "entry_date": "2025-05-19",
-        "remaining_shares": 91.92552413588137,
-        "remaining_cost": 10000.762939453125,
-        "unrealized_pct": -8.357247029054072
-      },
-      "first_date": "2024-11-11",
-      "last_date": "2026-11-10"
-    },
-    {
-      "strategy": "C2",
-      "completed_trades": 65,
-      "buy_orders": 36,
-      "sell_orders": 65,
-      "total_invested": 360000.0,
-      "total_sale_proceeds": 364526.14707924944,
-      "ending_market_value": 2871.648872113831,
-      "trading_profit": 7397.795951363281,
-      "invested_return_pct": 38.16137932210959,
-      "turnover_return_pct": 2.0549433198231335,
-      "external_capital": 19385.55702853543,
-      "capital_contributions_count": 5,
-      "capital_deposits": [
-        {
-          "date": "2025-05-19",
-          "amount": 10000.0,
-          "reason": "buy_funding_C2"
-        },
-        {
-          "date": "2025-05-22",
-          "amount": 5041.037733560696,
-          "reason": "buy_funding_C2"
-        },
-        {
-          "date": "2025-06-11",
-          "amount": 2584.158856962258,
-          "reason": "buy_funding_C2"
-        },
-        {
-          "date": "2025-06-17",
-          "amount": 1152.449498911259,
-          "reason": "buy_funding_C2"
-        },
-        {
-          "date": "2025-06-25",
-          "amount": 607.9109391012134,
-          "reason": "buy_funding_C2"
-        }
-      ],
-      "capital_xirr_pct": 24.78082554507013,
-      "capital_profit": 7397.795951363281,
-      "skipped_buys_insufficient_cash": 0,
-      "wins": 49,
-      "win_rate_pct": 75.38461538461539,
-      "average_trade_return_pct": 3.874215157215073,
-      "median_trade_return_pct": 2.145997693738866,
-      "strategy_return_pct": 38.16137932210959,
-      "buy_hold_return_pct": 108.64905342251193,
-      "max_drawdown_pct": -4.611450432802555,
-      "exposure_pct": 74.63917525773196,
-      "open_trade": {
-        "entry_date": "2025-05-19",
-        "remaining_shares": 28.80289829501806,
-        "remaining_cost": 3117.6857303943393,
-        "unrealized_pct": -7.891650395737237
-      },
-      "first_date": "2024-11-11",
-      "last_date": "2026-11-10"
-    },
-    {
-      "strategy": "B3",
-      "completed_trades": 6,
-      "buy_orders": 105,
-      "sell_orders": 6,
-      "total_invested": 1050000.0,
-      "total_sale_proceeds": 1123592.427530441,
-      "ending_market_value": 172425.8068430398,
-      "trading_profit": 246018.23437348078,
-      "invested_return_pct": 58.544290542302946,
-      "turnover_return_pct": 23.430308035569595,
-      "external_capital": 420225.83602018864,
-      "capital_contributions_count": 43,
-      "capital_deposits": [
-        {
-          "date": "2025-05-15",
-          "amount": 10000.0,
-          "reason": "buy_funding_B3"
-        },
-        {
-          "date": "2025-05-19",
-          "amount": 10000.0,
-          "reason": "buy_funding_B3"
-        },
-        {
-          "date": "2025-05-21",
-          "amount": 10000.0,
-          "reason": "buy_funding_B3"
-        },
-        {
-          "date": "2025-05-22",
-          "amount": 10000.0,
-          "reason": "buy_funding_B3"
-        },
-        {
-          "date": "2025-05-29",
-          "amount": 10000.0,
-          "reason": "buy_funding_B3"
-        },
-        {
-          "date": "2025-06-04",
-          "amount": 10000.0,
-          "reason": "buy_funding_B3"
-        },
-        {
-          "date": "2025-06-05",
-          "amount": 10000.0,
-          "reason": "buy_funding_B3"
-        },
-        {
-          "date": "2025-06-06",
-          "amount": 10000.0,
-          "reason": "buy_funding_B3"
-        },
-        {
-          "date": "2025-06-10",
-          "amount": 10000.0,
-          "reason": "buy_funding_B3"
-        },
-        {
-          "date": "2025-06-11",
-          "amount": 10000.0,
-          "reason": "buy_funding_B3"
-        },
-        {
-          "date": "2025-06-12",
-          "amount": 10000.0,
-          "reason": "buy_funding_B3"
-        },
-        {
-          "date": "2025-06-18",
-          "amount": 10000.0,
-          "reason": "buy_funding_B3"
-        },
-        {
-          "date": "2025-06-19",
-          "amount": 10000.0,
-          "reason": "buy_funding_B3"
-        },
-        {
-          "date": "2025-06-23",
-          "amount": 10000.0,
-          "reason": "buy_funding_B3"
-        },
-        {
-          "date": "2025-06-25",
-          "amount": 10000.0,
-          "reason": "buy_funding_B3"
-        },
-        {
-          "date": "2025-06-26",
-          "amount": 10000.0,
-          "reason": "buy_funding_B3"
-        },
-        {
-          "date": "2025-06-27",
-          "amount": 10000.0,
-          "reason": "buy_funding_B3"
-        },
-        {
-          "date": "2025-06-30",
-          "amount": 10000.0,
-          "reason": "buy_funding_B3"
-        },
-        {
-          "date": "2025-07-02",
-          "amount": 10000.0,
-          "reason": "buy_funding_B3"
-        },
-        {
-          "date": "2025-07-03",
-          "amount": 10000.0,
-          "reason": "buy_funding_B3"
-        },
-        {
-          "date": "2025-07-04",
-          "amount": 10000.0,
-          "reason": "buy_funding_B3"
-        },
-        {
-          "date": "2025-07-10",
-          "amount": 10000.0,
-          "reason": "buy_funding_B3"
-        },
-        {
-          "date": "2025-07-11",
-          "amount": 10000.0,
-          "reason": "buy_funding_B3"
-        },
-        {
-          "date": "2025-07-14",
-          "amount": 10000.0,
-          "reason": "buy_funding_B3"
-        },
-        {
-          "date": "2025-07-16",
-          "amount": 10000.0,
-          "reason": "buy_funding_B3"
-        },
-        {
-          "date": "2025-07-17",
-          "amount": 10000.0,
-          "reason": "buy_funding_B3"
-        },
-        {
-          "date": "2025-07-18",
-          "amount": 10000.0,
-          "reason": "buy_funding_B3"
-        },
-        {
-          "date": "2025-07-21",
-          "amount": 10000.0,
-          "reason": "buy_funding_B3"
-        },
-        {
-          "date": "2025-07-24",
-          "amount": 10000.0,
-          "reason": "buy_funding_B3"
-        },
-        {
-          "date": "2025-07-25",
-          "amount": 10000.0,
-          "reason": "buy_funding_B3"
+          "reason": "buy_funding_B4"
         },
         {
           "date": "2025-07-29",
           "amount": 10000.0,
-          "reason": "buy_funding_B3"
+          "reason": "buy_funding_B4"
         },
         {
-          "date": "2025-07-31",
+          "date": "2025-08-22",
           "amount": 10000.0,
-          "reason": "buy_funding_B3"
+          "reason": "buy_funding_B4"
         },
         {
-          "date": "2025-08-01",
+          "date": "2025-10-01",
           "amount": 10000.0,
-          "reason": "buy_funding_B3"
+          "reason": "buy_funding_B4"
         },
         {
-          "date": "2025-12-05",
-          "amount": 225.83602018860984,
-          "reason": "buy_funding_B3"
-        },
-        {
-          "date": "2025-12-08",
+          "date": "2025-11-04",
           "amount": 10000.0,
-          "reason": "buy_funding_B3"
+          "reason": "buy_funding_B4"
         },
         {
-          "date": "2025-12-09",
+          "date": "2026-02-04",
           "amount": 10000.0,
-          "reason": "buy_funding_B3"
-        },
-        {
-          "date": "2025-12-11",
-          "amount": 10000.0,
-          "reason": "buy_funding_B3"
-        },
-        {
-          "date": "2025-12-15",
-          "amount": 10000.0,
-          "reason": "buy_funding_B3"
-        },
-        {
-          "date": "2025-12-22",
-          "amount": 10000.0,
-          "reason": "buy_funding_B3"
-        },
-        {
-          "date": "2025-12-23",
-          "amount": 10000.0,
-          "reason": "buy_funding_B3"
-        },
-        {
-          "date": "2025-12-24",
-          "amount": 10000.0,
-          "reason": "buy_funding_B3"
-        },
-        {
-          "date": "2025-12-26",
-          "amount": 10000.0,
-          "reason": "buy_funding_B3"
-        },
-        {
-          "date": "2025-12-29",
-          "amount": 10000.0,
-          "reason": "buy_funding_B3"
+          "reason": "buy_funding_B4"
         }
       ],
-      "capital_xirr_pct": 43.44082064883542,
-      "capital_profit": 246018.23437348078,
+      "capital_xirr_pct": 41.284901152882114,
+      "capital_profit": 29387.50496418611,
       "skipped_buys_insufficient_cash": 0,
-      "wins": 6,
-      "win_rate_pct": 100.0,
-      "average_trade_return_pct": 28.428734655234468,
-      "median_trade_return_pct": 25.72710975911591,
-      "strategy_return_pct": 58.544290542302946,
+      "wins": 8,
+      "win_rate_pct": 80.0,
+      "average_trade_return_pct": 23.23321143414433,
+      "median_trade_return_pct": 14.732863889081916,
+      "strategy_return_pct": 48.97917494031019,
       "buy_hold_return_pct": 108.64905342251193,
-      "max_drawdown_pct": -8.441649404216234,
+      "max_drawdown_pct": -7.967686929239026,
+      "exposure_pct": 74.63917525773196,
+      "open_trade": {
+        "entry_date": "2025-05-19",
+        "remaining_shares": 151.86420279685046,
+        "remaining_cost": 15546.875,
+        "unrealized_pct": -2.611550196465673
+      },
+      "first_date": "2024-11-11",
+      "last_date": "2026-11-10"
+    },
+    {
+      "strategy": "C3",
+      "completed_trades": 24,
+      "buy_orders": 18,
+      "sell_orders": 24,
+      "total_invested": 180000.0,
+      "total_sale_proceeds": 176280.2294139008,
+      "ending_market_value": 12943.534666478417,
+      "trading_profit": 9223.764080379216,
+      "invested_return_pct": 33.648283311448715,
+      "turnover_return_pct": 5.124313377988454,
+      "external_capital": 27412.287262931066,
+      "capital_contributions_count": 4,
+      "capital_deposits": [
+        {
+          "date": "2025-05-15",
+          "amount": 10000.0,
+          "reason": "buy_funding_C3"
+        },
+        {
+          "date": "2025-06-05",
+          "amount": 5166.276373052658,
+          "reason": "buy_funding_C3"
+        },
+        {
+          "date": "2025-06-25",
+          "amount": 2246.010889878411,
+          "reason": "buy_funding_C3"
+        },
+        {
+          "date": "2025-07-10",
+          "amount": 10000.0,
+          "reason": "buy_funding_C3"
+        }
+      ],
+      "capital_xirr_pct": 22.76945213122018,
+      "capital_profit": 9223.764080379216,
+      "skipped_buys_insufficient_cash": 0,
+      "wins": 19,
+      "win_rate_pct": 79.16666666666666,
+      "average_trade_return_pct": 8.803084098622335,
+      "median_trade_return_pct": 2.8797705619117098,
+      "strategy_return_pct": 33.648283311448715,
+      "buy_hold_return_pct": 108.64905342251193,
+      "max_drawdown_pct": -10.121996139133982,
       "exposure_pct": 75.05154639175258,
       "open_trade": {
         "entry_date": "2025-05-15",
-        "remaining_shares": 1729.4464605906874,
-        "remaining_cost": 166718.75,
-        "unrealized_pct": 3.4231643669592193
+        "remaining_shares": 129.82482510202948,
+        "remaining_cost": 14084.612727165222,
+        "unrealized_pct": -8.101593439527011
+      },
+      "first_date": "2024-11-11",
+      "last_date": "2026-11-10"
+    },
+    {
+      "strategy": "D",
+      "completed_trades": 18,
+      "buy_orders": 33,
+      "sell_orders": 18,
+      "total_invested": 330000.0,
+      "total_sale_proceeds": 336395.45661644725,
+      "ending_market_value": 9948.808032038703,
+      "trading_profit": 16344.264648485929,
+      "invested_return_pct": 16.609257996673797,
+      "turnover_return_pct": 4.95280746923816,
+      "external_capital": 98404.54433159545,
+      "capital_contributions_count": 10,
+      "capital_deposits": [
+        {
+          "date": "2025-06-27",
+          "amount": 10000.0,
+          "reason": "buy_funding_D"
+        },
+        {
+          "date": "2025-07-17",
+          "amount": 10000.0,
+          "reason": "buy_funding_D"
+        },
+        {
+          "date": "2025-08-06",
+          "amount": 10000.0,
+          "reason": "buy_funding_D"
+        },
+        {
+          "date": "2025-08-08",
+          "amount": 10000.0,
+          "reason": "buy_funding_D"
+        },
+        {
+          "date": "2025-08-12",
+          "amount": 10000.0,
+          "reason": "buy_funding_D"
+        },
+        {
+          "date": "2025-08-14",
+          "amount": 10000.0,
+          "reason": "buy_funding_D"
+        },
+        {
+          "date": "2025-08-19",
+          "amount": 10000.0,
+          "reason": "buy_funding_D"
+        },
+        {
+          "date": "2025-10-17",
+          "amount": 8404.544331595447,
+          "reason": "buy_funding_D"
+        },
+        {
+          "date": "2025-10-28",
+          "amount": 10000.0,
+          "reason": "buy_funding_D"
+        },
+        {
+          "date": "2025-10-30",
+          "amount": 10000.0,
+          "reason": "buy_funding_D"
+        }
+      ],
+      "capital_xirr_pct": 13.564406947796343,
+      "capital_profit": 16344.264648485929,
+      "skipped_buys_insufficient_cash": 0,
+      "wins": 17,
+      "win_rate_pct": 94.44444444444444,
+      "average_trade_return_pct": 5.587570319590221,
+      "median_trade_return_pct": 5.310981308248808,
+      "strategy_return_pct": 16.609257996673797,
+      "buy_hold_return_pct": 108.64905342251193,
+      "max_drawdown_pct": -5.448996476250734,
+      "exposure_pct": 68.8659793814433,
+      "open_trade": {
+        "entry_date": "2025-06-27",
+        "remaining_shares": 99.78744570276649,
+        "remaining_cost": 11282.310485839844,
+        "unrealized_pct": -11.819409290985094
       },
       "first_date": "2024-11-11",
       "last_date": "2026-11-10"
@@ -1210,29 +718,29 @@
       "monthly_amount": 3000,
       "total_invested": 75000.0,
       "remaining_cash": 25000.0,
-      "ending_market_value": 123044.41993992866,
-      "ending_equity": 148044.41993992866,
-      "net_profit": 48044.41993992866,
-      "invested_return_pct": 64.05922658657155,
-      "trading_profit": 48044.41993992866,
+      "ending_market_value": 123044.41887017254,
+      "ending_equity": 148044.41887017252,
+      "net_profit": 48044.41887017252,
+      "invested_return_pct": 64.05922516023004,
+      "trading_profit": 48044.418870172536,
       "total_sale_proceeds": 0.0,
-      "strategy_return_pct": 48.04441993992865,
-      "max_drawdown_pct": -17.36565494076723,
+      "strategy_return_pct": 48.04441887017252,
+      "max_drawdown_pct": -17.365654916753048,
       "exposure_pct": 100.0,
       "skipped_insufficient_cash": 0,
       "first_date": "2024-11-11",
       "last_date": "2026-11-10",
       "external_contributions": 75000.0,
-      "external_market_value": 123044.41993992866,
-      "external_profit": 48044.41993992866,
-      "external_return_on_contributions_pct": 64.05922658657155,
-      "external_xirr_pct": 56.69977920576723,
+      "external_market_value": 123044.41887017254,
+      "external_profit": 48044.418870172536,
+      "external_return_on_contributions_pct": 64.05922516023004,
+      "external_xirr_pct": 56.69977805192556,
       "open_trade": {
-        "remaining_shares": 1234.1466770937352,
+        "remaining_shares": 1234.1466663639844,
         "remaining_cost": 75000.0
       },
       "buy_hold_return_pct": 108.64905342251193
     }
   ],
-  "comparison_note": "策略本金採買進時現金不足的外部補款累計，不設10萬上限；已實現＋未實現獲利除以實際外部補款。賣出所得再用於買進不算新本金，另列累計交易額及年化XIRR。定期定額外部本金為每月3000。"
+  "comparison_note": "日常啟用 A/A3/B4/C3/D 加月初3000定期定額。舊版 B/C/A2/B2/C2/B3 已封存，不進入日常績效排名。策略本金採買進時現金不足的外部補款累計，不設10萬上限；已實現與未實現獲利除以實際外部補款。"
 }
