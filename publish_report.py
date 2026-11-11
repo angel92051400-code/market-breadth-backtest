@@ -17,18 +17,9 @@ def generate(source=Path("output"), dest=Path("docs")):
     payload = json.loads((source / "summary.json").read_text(encoding="utf-8"))
     rows = payload["results"]
     dest.mkdir(parents=True, exist_ok=True)
-    files = [
-        "report.html",
-        "summary.json",
-        "summary.csv",
-        "signal_diagnostics.csv",
-        "trades_A.csv",
-        "trades_B.csv",
-        "trades_C.csv",
-        "equity_A.csv",
-        "equity_B.csv",
-        "equity_C.csv",
-    ]
+    files = ["report.html", "summary.json", "summary.csv", "signal_diagnostics.csv"]
+    for strategy in ("A", "B", "C", "A2", "B2", "C2"):
+        files.extend((f"trades_{strategy}.csv", f"equity_{strategy}.csv"))
     for filename in files:
         file = source / filename
         if not file.is_file():
@@ -42,6 +33,10 @@ def generate(source=Path("output"), dest=Path("docs")):
         '隔日買進；依訊號當日固定的下一級壓力目標或支撐失效價位出場，不使用市場寬度。</p>'
         '<p><strong>C｜綜合策略</strong>：過冷回升後五日內且接近費波那契價位買進；'
         '市場寬度上穿過熱門檻賣出。</p>'
+        '<p><strong>A2｜寬度波段</strong>：上穿40%進場；失守40%、達65%或30交易日退出。</p>'
+        '<p><strong>B2｜費波那契反彈</strong>：靠近支撐且止跌反彈買進；回落6%、支撐失效或45交易日退出。</p>'
+        '<p><strong>C2｜綜合波段</strong>：寬度上穿40%且高於費波那契50%價位買進；'
+        '寬度失守、指數跌破Fib50%或45交易日退出。</p>'
     )
     ticker = html.escape(str(payload.get("ticker", "0050.TW")))
     config = payload["config"]
@@ -53,6 +48,7 @@ def generate(source=Path("output"), dest=Path("docs")):
         f"<td>{display(r['win_rate_pct'],1,'%')}</td>"
         f"<td>{display(r['strategy_return_pct'],2,'%')}</td>"
         f"<td>{display(r['max_drawdown_pct'],2,'%')}</td>"
+        f"<td>{display(r.get('exposure_pct'),1,'%')}</td>"
         f"<td>{display(r['buy_hold_return_pct'],2,'%')}</td>"
         "</tr>"
         for r in rows
@@ -93,7 +89,7 @@ a{{color:#8ac4ff}}
 <body><main>
 <p class="muted">獨立研究專案 · 使用交易日資料、隔日開盤成交</p>
 <h1>台股市場寬度 × 費波那契策略回測</h1>
-<p>標的 {ticker}　|　市場資料截至 {snapshot}　|　買進門檻 {config['buy']:g}%　|　賣出門檻 {config['sell']:g}%</p>
+<p>標的 {ticker}　|　市場資料截至 {snapshot}　|　首筆資料 {html.escape(str(rows[0].get('first_date', '—')))}　|　末筆資料 {html.escape(str(rows[0].get('last_date', '—')))}　|　原版買進門檻 {config['buy']:g}%　|　賣出門檻 {config['sell']:g}%</p>
 <section class="panel warn">
 <strong>研究用途，非投資建議</strong>
 <p>2025 年資料缺漏或歷史成分股回推可能影響結果。交易筆數極少時，勝率不具統計意義。
@@ -107,9 +103,9 @@ a{{color:#8ac4ff}}
 <section class="panel">
 <h2>策略績效比較</h2>
 <div class="table-wrap"><table>
-<thead><tr><th>策略</th><th>完成交易</th><th>勝率</th><th>策略總報酬</th><th>最大回撤</th><th>0050 持有報酬*</th></tr></thead>
+<thead><tr><th>策略</th><th>完成交易</th><th>勝率</th><th>策略總報酬</th><th>最大回撤</th><th>持倉比例</th><th>0050 持有報酬*</th></tr></thead>
 <tbody>{body_rows}</tbody></table></div>
-<p class="muted">* 比較基準與策略期間一致；請以逐筆交易及每日資金曲線核對所有結果，未平倉不列入已完成交易勝率。</p>
+<p class="muted">* 相同期間的 0050 持有基準。持倉比例指有部位的交易日占比；未平倉不計入完成交易與勝率，但包含期末總報酬。六組策略屬預先指定的研究假設，並非最適化結果。資料從目前來源最早日期開始；費波那契須先累積120個已完成交易日才有訊號。</p>
 </section>
 <section class="panel">
 <h2>互動圖表</h2>
