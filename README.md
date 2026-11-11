@@ -2,6 +2,19 @@
 
 此專案獨立於 `my-market-breadth` 監控網站，不會修改其內容。從網站 `index.html` 取得市場寬度及加權指數歷史 OHLC，另外下載 0050 ETF 價格，以訊號隔日成交比較 A、B 策略。
 
+## 固定網址直接查看回測報告
+
+每次手動回測完成後，GitHub Actions 會更新 `docs/index.html`、互動圖表和 CSV。啟用 GitHub Pages 後，可以直接用固定網址查看最新結果，無須下載 Actions 附件。
+
+**一次性啟用設定（須由儲存庫管理員在 GitHub 介面設定）**：
+
+1. 打開本專案 **Settings → Pages**。
+2. 在 **Build and deployment** 選擇 **Deploy from a branch**。
+3. 選擇 **main** 分支、**/docs** 資料夾，點 **Save**。
+4. 部署成功後，公開網站網址通常是 `https://angel92051400-code.github.io/market-breadth-backtest/`，請以 Settings → Pages 顯示的網站網址為準。
+
+**隱私與方案限制**：此儲存庫目前為 Private。GitHub Free 通常不能從 Private 儲存庫啟用 Pages；GitHub Pro／Team 等方案可支援。即使儲存庫是 Private，GitHub Pages 網站一般仍是**公開**的。請在啟用前確認你願意讓績效報告與交易明細被公開讀取；本流程不會變更儲存庫能見度，也不會自動啟用 Pages。
+
 ## 策略
 - A：市場寬度從 ≤20% 回升到 >20% 進場；從 <70% 上穿 70% 出場。
 - B：A 的回升訊號在近 5 個交易日出現，且加權指數收盤價距離過去 120 交易日的費波那契 38.2%、50%、61.8% 之一不超過 3% 才進場；出場同 A。

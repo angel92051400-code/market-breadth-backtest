@@ -1,5 +1,6 @@
 name: Manual Strategy Backtest
 on:
+  # Run manually with custom thresholds; re-run once when the publishing code is deployed.
   workflow_dispatch:
     inputs:
       buy:
@@ -12,8 +13,22 @@ on:
         default: '70'
         required: true
         type: string
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/backtest.yml
+      - run_backtest.py
+      - backtest.py
+      - data_sources.py
+      - publish_report.py
+
 permissions:
-  contents: read
+  contents: write
+
+concurrency:
+  group: strategy-backtest-publish
+  cancel-in-progress: false
+
 jobs:
   backtest:
     runs-on: ubuntu-latest
@@ -24,13 +39,31 @@ jobs:
         with:
           python-version: '3.11'
       - run: pip install -r requirements.txt
-      - run: python -m pytest -q
+      - name: Run unit tests
+        run: python -m pytest -q
       - name: Backtest
         env:
-          BUY: ${{ inputs.buy }}
-          SELL: ${{ inputs.sell }}
-        run: python run_backtest.py --buy "$BUY" --sell "$SELL"
-      - uses: actions/upload-artifact@v4
+          BUY: ${{ inputs.buy || '20' }}
+          SELL: ${{ inputs.sell || '70' }}
+        run: |
+          python run_backtest.py --buy "$BUY" --sell "$SELL"
+      - name: Build browsable static website
+        run: python publish_report.py
+      - name: Publish latest report to docs/
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/
+          if git diff --cached --quiet; then
+            echo "報告沒有變化"
+          else
+            git commit -m "Publish latest backtest results to docs/"
+            git pull --rebase origin main
+            git push origin HEAD:main
+          fi
+      - name: Upload report attachment backup
+        uses: actions/upload-artifact@v4
         if: always()
         with:
           name: strategy-backtest-report
