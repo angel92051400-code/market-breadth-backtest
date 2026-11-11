@@ -230,8 +230,21 @@ def evaluate_portfolio(signals: pd.DataFrame, prices: pd.DataFrame, cfg, strateg
             "unrealized_pct":float((shares*float(last)/cost_basis-1)*100) if cost_basis>0 else None,
         }
     realized = ledger.loc[ledger.action=="SELL","realized_return_pct"]
+    purchases = float(ledger.loc[ledger.action=="BUY","gross_value"].sum())
+    sales = float(ledger.loc[ledger.action=="SELL","gross_value"].sum())
+    remaining_value = float(shares*last)
+    profit_on_trades = sales+remaining_value-purchases
+    # User's primary view: investment profit divided by actually executed
+    # purchases. Idle cash is explicitly excluded. A reused dollar is counted
+    # again on each purchase; disclose this turnover-based denominator.
+    traded_roi = (profit_on_trades/purchases*100) if purchases>0 else None
     stats = {
         "strategy":strategy,"completed_trades":n,"buy_orders":buys,"sell_orders":sells,
+        "total_invested":purchases,
+        "total_sale_proceeds":sales,
+        "ending_market_value":remaining_value,
+        "trading_profit":profit_on_trades,
+        "invested_return_pct":traded_roi,
         "skipped_buys_insufficient_cash":skipped_buys,
         "wins":win,"win_rate_pct":float(win/n*100) if n else None,
         "average_trade_return_pct":float(realized.mean()) if n else None,
