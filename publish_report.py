@@ -24,8 +24,10 @@ def generate(source=Path("output"), dest=Path("docs")):
         "signal_diagnostics.csv",
         "trades_A.csv",
         "trades_B.csv",
+        "trades_C.csv",
         "equity_A.csv",
         "equity_B.csv",
+        "equity_C.csv",
     ]
     for filename in files:
         file = source / filename
@@ -34,6 +36,13 @@ def generate(source=Path("output"), dest=Path("docs")):
         shutil.copyfile(file, dest / filename)
     (dest / ".nojekyll").write_text("", encoding="utf-8")
 
+    strategy_desc = (
+        '<p><strong>A｜純市場寬度</strong>：過冷後回升買進、上穿過熱門檻賣出。</p>'
+        '<p><strong>B｜純費波那契</strong>：價格向上收復過去 120 日費波那契支撐，'
+        '隔日買進；依訊號當日固定的下一級壓力目標或支撐失效價位出場，不使用市場寬度。</p>'
+        '<p><strong>C｜綜合策略</strong>：過冷回升後五日內且接近費波那契價位買進；'
+        '市場寬度上穿過熱門檻賣出。</p>'
+    )
     ticker = html.escape(str(payload.get("ticker", "0050.TW")))
     config = payload["config"]
     snapshot = html.escape(str(payload["source"].get("snapshot_date", "—")))
@@ -74,11 +83,11 @@ table{{border-collapse:collapse;width:100%;min-width:610px}}
 th,td{{padding:12px;text-align:right;border-bottom:1px solid #364154}}
 th:first-child,td:first-child{{text-align:left}}
 th{{color:#a6b3c6;font-weight:600}}
-iframe{{width:100%;min-height:820px;border:0;background:#14171d;border-radius:10px}}
+iframe{{width:100%;min-height:1100px;border:0;background:#14171d;border-radius:10px}}
 a{{color:#8ac4ff}}
 .files{{display:flex;gap:10px;flex-wrap:wrap}}
 .files a{{padding:5px 10px;border:1px solid #495b74;border-radius:8px;text-decoration:none}}
-@media(max-width:640px){{iframe{{min-height:760px}} h1{{font-size:22px}}}}
+@media(max-width:640px){{iframe{{min-height:960px}} h1{{font-size:22px}}}}
 </style>
 </head>
 <body><main>
@@ -90,6 +99,10 @@ a{{color:#8ac4ff}}
 <p>2025 年資料缺漏或歷史成分股回推可能影響結果。交易筆數極少時，勝率不具統計意義。
 本模型僅在收盤後計算訊號，隔日開盤假設成交；以調整後價格估算，非可保證成交的實際報酬。
 目前資料使用當前前 640 大股票回推，存在存活者偏差。</p>
+</section>
+<section class="panel">
+<h2>三種策略規則</h2>
+{strategy_desc}
 </section>
 <section class="panel">
 <h2>策略績效比較</h2>
