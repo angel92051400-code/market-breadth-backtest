@@ -40,6 +40,10 @@ def add_variant_signals(signals: pd.DataFrame) -> pd.DataFrame:
     # B3 widens entry around 23.6/38.2/50/61.8/78.6% supports.
     # 1.414 is a *separate extension target*, not a 140% retracement.
     # Extrema are historical and shifted in fibonacci_support().
+    # Synthetic test fixtures may omit rolling extrema; B3 stays disabled.
+    if "rolling_high" not in s or "rolling_low" not in s:
+        s["rolling_high"] = np.nan
+        s["rolling_low"] = np.nan
     span = s["rolling_high"] - s["rolling_low"]
     b3_levels = pd.DataFrame(index=s.index)
     for f in (.236, .382, .5, .618, .786):
